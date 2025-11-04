@@ -1,0 +1,25 @@
+[
+  { "id": 1, "name": "Alimentos" },
+  { "id": 2, "name": "Bebidas" },
+  { "id": 3, "name": "Hortifruti" },
+  { "id": 4, "name": "Padaria e Confeitaria" },
+  { "id": 5, "name": "Carnes e Frios" },
+  { "id": 6, "name": "Laticínios" },
+  { "id": 7, "name": "Congelados" },
+  { "id": 8, "name": "Mercearia" },
+  { "id": 9, "name": "Doces e Sobremesas" },
+  { "id": 10, "name": "Cereais e Matinais" },
+  { "id": 11, "name": "Massas e Farinhas" },
+  { "id": 12, "name": "Molhos, Condimentos e Temperos" },
+  { "id": 13, "name": "Óleos e Gorduras" },
+  { "id": 14, "name": "Limpeza" },
+  { "id": 15, "name": "Higiene Pessoal" },
+  { "id": 16, "name": "Perfumaria e Cosméticos" },
+  { "id": 17, "name": "Utilidades Domésticas" },
+  { "id": 18, "name": "Pet Shop" },
+  { "id": 19, "name": "Saúde e Bem-estar" },
+  { "id": 20, "name": "Casa e Jardim" },
+  { "id": 21, "name": "Produtos Naturais e Orgânicos" },
+  { "id": 22, "name": "Bebidas Alcoólicas" }
+
+]
