@@ -4,7 +4,15 @@
 
 ## 📱 Capturas de Tela
 
-*Em breve - capturas de tela do aplicativo*
+
+<img width="1080" height="2400" alt="Screenshot_1762215655" src="https://github.com/user-attachments/assets/bbe12b17-7ca3-46bd-b14a-417c58234cd3" />
+
+<img width="1080" height="2400" alt="Screenshot_1762215666" src="https://github.com/user-attachments/assets/03e4e116-7833-4968-9475-a3ac86b53b5b" />
+
+<img width="1080" height="2400" alt="Screenshot_1762215670" src="https://github.com/user-attachments/assets/239bbb3f-d50e-4289-a90c-22e878e43a04" />
+
+<img width="1080" height="2400" alt="Screenshot_1762215674" src="https://github.com/user-attachments/assets/ac2e22cc-c386-4e90-8636-6c3279c36177" />
+
 
 ## ✨ Funcionalidades Principais
 
