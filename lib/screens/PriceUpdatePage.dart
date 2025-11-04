@@ -5,7 +5,6 @@ import '../controllers/ItemMarketController.dart';
 import '../controllers/ItemPriceController.dart';
 import '../models/ItemMarketModel.dart';
 import '../utils/price_helper.dart';
-import '../utils/watermark_widget.dart';
 import '../widgets/price_form_field.dart';
 
 class PriceUpdatePage extends StatefulWidget {
@@ -411,12 +410,6 @@ class _PriceUpdatePageState extends State<PriceUpdatePage> {
                   ),
                 ),
               ),
-              // Marca de água acima dos botões
-              const Padding(
-                padding: EdgeInsets.only(bottom: 8, left: 16, right: 16),
-                child: WatermarkWidget(),
-              ),
-              // Botões fixos no final da tela
               Container(
                 padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(

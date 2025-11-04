@@ -5,27 +5,20 @@ class WatermarkWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Positioned(
-      bottom: 10,
-      left: 0,
-      right: 0,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            // Marca d'água no canto inferior esquerdo
-            Text(
-              'developbyjcleite',
-              style: TextStyle(fontSize: 10, color: Colors.grey[600], fontWeight: FontWeight.w300),
-            ),
-            // Versão no canto inferior direito
-            Text(
-              'v2.0.0',
-              style: TextStyle(fontSize: 10, color: Colors.grey[600], fontWeight: FontWeight.w300),
-            ),
-          ],
-        ),
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            'developbyjcleite',
+            style: TextStyle(fontSize: 10, color: Colors.grey[600], fontWeight: FontWeight.w300),
+          ),
+          Text(
+            'v2.0.0',
+            style: TextStyle(fontSize: 10, color: Colors.grey[600], fontWeight: FontWeight.w300),
+          ),
+        ],
       ),
     );
   }

@@ -4,7 +4,6 @@ import 'package:market_express/controllers/ItemPriceController.dart';
 import 'package:market_express/models/ItemMarketModel.dart';
 import 'package:market_express/screens/PriceUpdatePage.dart';
 import 'package:market_express/services/LoadCategories.dart';
-import 'package:market_express/utils/watermark_widget.dart';
 import 'package:market_express/widgets/price_form_field.dart';
 import 'package:provider/provider.dart';
 
@@ -334,12 +333,6 @@ class _ItemDetailPageState extends State<ItemDetailPage> {
                         ),
                       ),
               ),
-              // Marca de água acima dos botões
-              const Padding(
-                padding: EdgeInsets.only(bottom: 8, left: 16, right: 16),
-                child: WatermarkWidget(),
-              ),
-              // Botões fixos na parte inferior
               Container(
                 padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(

@@ -7,7 +7,6 @@ import 'package:market_express/screens/AddItemPage.dart';
 import 'package:market_express/screens/ItemDetailsPage.dart';
 import 'package:market_express/screens/SelectItemPage.dart';
 import 'package:market_express/utils/price_helper.dart';
-import 'package:market_express/utils/watermark_widget.dart';
 import 'package:provider/provider.dart';
 
 class ShoppingPage extends StatefulWidget {
@@ -897,7 +896,6 @@ class _ShoppingPageState extends State<ShoppingPage> {
               ),
             ],
           ),
-          const WatermarkWidget(),
         ],
       ),
     );

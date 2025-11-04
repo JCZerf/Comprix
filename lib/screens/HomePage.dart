@@ -396,9 +396,9 @@ class _HomePageState extends State<HomePage> {
                   },
                 ),
               ),
+              const WatermarkWidget(),
             ],
           ),
-          const WatermarkWidget(),
         ],
       ),
       floatingActionButton: FloatingActionButton(

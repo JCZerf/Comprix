@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:market_express/utils/price_helper.dart';
-import 'package:market_express/utils/watermark_widget.dart';
 import 'package:provider/provider.dart';
 
 import '../controllers/ItemMarketController.dart';
@@ -383,7 +382,6 @@ class _CreatePurchasePageState extends State<CreatePurchasePage> {
                 ),
             ],
           ),
-          const WatermarkWidget(),
         ],
       ),
     );

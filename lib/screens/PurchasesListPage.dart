@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:market_express/screens/CreatePurchasePage.dart';
 import 'package:market_express/utils/price_helper.dart';
-import 'package:market_express/utils/watermark_widget.dart';
 import 'package:provider/provider.dart';
 
 import '../controllers/PurchasesController.dart';
@@ -311,7 +310,6 @@ class PurchasesListPage extends StatelessWidget {
               );
             },
           ),
-          const WatermarkWidget(),
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
