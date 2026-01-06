@@ -4,6 +4,7 @@ import 'package:market_express/controllers/ItemPriceController.dart';
 import 'package:market_express/models/ItemMarketModel.dart';
 import 'package:market_express/screens/PriceUpdatePage.dart';
 import 'package:market_express/services/LoadCategories.dart';
+import 'package:market_express/utils/app_colors.dart';
 import 'package:market_express/widgets/price_form_field.dart';
 import 'package:provider/provider.dart';
 
@@ -15,7 +16,7 @@ class ItemDetailPage extends StatefulWidget {
   State<ItemDetailPage> createState() => _ItemDetailPageState();
 }
 
-class _ItemDetailPageState extends State<ItemDetailPage> {
+class _ItemDetailPageState extends State<ItemDetailPage> with SingleTickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
   late String name;
   late int priceCentavos;
@@ -23,6 +24,10 @@ class _ItemDetailPageState extends State<ItemDetailPage> {
   late String description;
   late String category;
   List<String> categories = [];
+  bool _isLoading = false;
+  late AnimationController _animationController;
+  late Animation<double> _fadeAnimation;
+  late Animation<Offset> _slideAnimation;
 
   @override
   void initState() {
@@ -33,6 +38,29 @@ class _ItemDetailPageState extends State<ItemDetailPage> {
     description = widget.item.description ?? '';
     category = widget.item.category ?? '';
     _loadCategories();
+
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 500),
+    );
+
+    _fadeAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _animationController, curve: Curves.easeOut));
+
+    _slideAnimation = Tween<Offset>(
+      begin: const Offset(0, 0.05),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(parent: _animationController, curve: Curves.easeOut));
+
+    _animationController.forward();
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
   }
 
   Future<void> _loadCategories() async {
@@ -49,9 +77,19 @@ class _ItemDetailPageState extends State<ItemDetailPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Detalhes do Item', style: TextStyle(fontWeight: FontWeight.w600)),
-        backgroundColor: Colors.lightBlue[700],
+        title: const Text(
+          'Detalhes do Item',
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+        ),
+        backgroundColor: AppColors.primaryBlue,
         elevation: 0,
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(gradient: AppColors.primaryGradient),
+        ),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_rounded),
+          onPressed: () => Navigator.pop(context),
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.delete_outline),
@@ -75,7 +113,7 @@ class _ItemDetailPageState extends State<ItemDetailPage> {
                         Navigator.pop(context); // Fecha o dialog
                         Navigator.pop(context); // Volta para a homepage
                       },
-                      child: const Text('Excluir'),
+                      child: const Text('Excluir', style: TextStyle(color: Colors.red)),
                     ),
                   ],
                 ),
@@ -84,136 +122,192 @@ class _ItemDetailPageState extends State<ItemDetailPage> {
           ),
         ],
       ),
-      backgroundColor: Colors.grey[50],
-      body: Stack(
-        children: [
-          Column(
+      backgroundColor: AppColors.background,
+      body: FadeTransition(
+        opacity: _fadeAnimation,
+        child: SlideTransition(
+          position: _slideAnimation,
+          child: Column(
             children: [
               Expanded(
-                child: categories.isEmpty
-                    ? Container(
-                        color: Colors.white,
-                        child: const Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              CircularProgressIndicator(),
-                              SizedBox(height: 16),
-                              Text('Carregando categorias...'),
-                            ],
-                          ),
+                child: SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Header com gradiente e ícone
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 28),
+                        decoration: const BoxDecoration(
+                          gradient: AppColors.primaryGradient,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Color(0x2042A5F5),
+                              blurRadius: 12,
+                              offset: Offset(0, 4),
+                            ),
+                          ],
                         ),
-                      )
-                    : SingleChildScrollView(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Container(
-                              width: double.infinity,
-                              padding: const EdgeInsets.all(24),
+                              padding: const EdgeInsets.all(12),
                               decoration: BoxDecoration(
-                                color: Colors.white,
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withOpacity(0.05),
-                                    blurRadius: 8,
-                                    offset: const Offset(0, 2),
-                                  ),
-                                ],
+                                color: Colors.white.withOpacity(0.2),
+                                borderRadius: BorderRadius.circular(12),
                               ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
+                              child: const Icon(Icons.edit_rounded, size: 32, color: Colors.white),
+                            ),
+                            const SizedBox(height: 12),
+                            const Text(
+                              'Editar Item',
+                              style: TextStyle(
+                                fontSize: 26,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                                letterSpacing: -0.5,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'Modifique as informações do produto',
+                              style: TextStyle(fontSize: 14, color: Colors.white.withOpacity(0.9)),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      // Formulário
+                      Padding(
+                        padding: const EdgeInsets.all(24.0),
+                        child: categories.isEmpty
+                            ? Container(
+                                padding: const EdgeInsets.all(40),
+                                child: const Center(
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
-                                      Container(
-                                        width: 48,
-                                        height: 48,
-                                        decoration: BoxDecoration(
-                                          color: Colors.lightBlue[100],
-                                          borderRadius: BorderRadius.circular(12),
-                                        ),
-                                        child: Icon(
-                                          Icons.edit_outlined,
-                                          color: Colors.lightBlue[700],
-                                          size: 24,
-                                        ),
-                                      ),
-                                      const SizedBox(width: 16),
-                                      Expanded(
-                                        child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          children: [
-                                            const Text(
-                                              'Editar Item',
-                                              style: TextStyle(
-                                                fontSize: 24,
-                                                fontWeight: FontWeight.bold,
-                                                color: Colors.black87,
-                                              ),
-                                            ),
-                                            Text(
-                                              'Modifique as informações do item',
-                                              style: TextStyle(
-                                                fontSize: 14,
-                                                color: Colors.grey[600],
-                                              ),
-                                            ),
-                                          ],
-                                        ),
+                                      CircularProgressIndicator(color: AppColors.primaryBlue),
+                                      SizedBox(height: 16),
+                                      Text(
+                                        'Carregando categorias...',
+                                        style: TextStyle(color: AppColors.textSecondary),
                                       ),
                                     ],
                                   ),
-                                ],
-                              ),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.all(24.0),
-                              child: Form(
+                                ),
+                              )
+                            : Form(
                                 key: _formKey,
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
+                                    // Nome do item
                                     _buildFormField(
                                       child: TextFormField(
                                         initialValue: name,
                                         decoration: InputDecoration(
-                                          labelText: 'Nome do item',
-                                          prefixIcon: const Icon(Icons.inventory_2_outlined),
+                                          labelText: 'Nome do item *',
+                                          hintText: 'Ex: Arroz integral 1kg',
+                                          prefixIcon: const Icon(
+                                            Icons.inventory_2_rounded,
+                                            color: AppColors.primaryBlue,
+                                          ),
                                           border: OutlineInputBorder(
-                                            borderRadius: BorderRadius.circular(12),
+                                            borderRadius: BorderRadius.circular(14),
+                                          ),
+                                          enabledBorder: OutlineInputBorder(
+                                            borderRadius: BorderRadius.circular(14),
+                                            borderSide: BorderSide(color: AppColors.divider),
+                                          ),
+                                          focusedBorder: OutlineInputBorder(
+                                            borderRadius: BorderRadius.circular(14),
+                                            borderSide: const BorderSide(
+                                              color: AppColors.primaryBlue,
+                                              width: 2,
+                                            ),
                                           ),
                                           filled: true,
                                           fillColor: Colors.white,
+                                          contentPadding: const EdgeInsets.symmetric(
+                                            horizontal: 16,
+                                            vertical: 18,
+                                          ),
                                         ),
+                                        textCapitalization: TextCapitalization.words,
                                         onSaved: (value) => name = value!.trim(),
                                         validator: (value) => value == null || value.isEmpty
                                             ? 'Informe o nome'
                                             : null,
                                       ),
                                     ),
+
+                                    // Preço e Quantidade lado a lado
                                     Row(
                                       children: [
                                         Expanded(
                                           child: _buildFormField(
                                             child: PriceFormField(
-                                              labelText: 'Preço',
+                                              labelText: 'Preço *',
+                                              hintText: '0,00',
                                               initialCentavos: priceCentavos,
                                               onSaved: (centavos) => priceCentavos = centavos,
                                               validator: (value) => null,
+                                              decoration: InputDecoration(
+                                                labelText: 'Preço *',
+                                                hintText: '0,00',
+                                                prefixIcon: const Icon(
+                                                  Icons.attach_money_rounded,
+                                                  color: AppColors.success,
+                                                ),
+                                                prefixText: 'R\$ ',
+                                                border: OutlineInputBorder(
+                                                  borderRadius: BorderRadius.circular(14),
+                                                ),
+                                                enabledBorder: OutlineInputBorder(
+                                                  borderRadius: BorderRadius.circular(14),
+                                                  borderSide: BorderSide(color: AppColors.divider),
+                                                ),
+                                                focusedBorder: OutlineInputBorder(
+                                                  borderRadius: BorderRadius.circular(14),
+                                                  borderSide: const BorderSide(
+                                                    color: AppColors.primaryBlue,
+                                                    width: 2,
+                                                  ),
+                                                ),
+                                                filled: true,
+                                                fillColor: Colors.white,
+                                              ),
                                             ),
                                           ),
                                         ),
-                                        const SizedBox(width: 16),
+                                        const SizedBox(width: 12),
                                         Expanded(
                                           child: _buildFormField(
                                             child: TextFormField(
                                               initialValue: quantity.toString(),
                                               decoration: InputDecoration(
-                                                labelText: 'Quantidade',
-                                                prefixIcon: const Icon(Icons.numbers),
+                                                labelText: 'Quantidade *',
+                                                hintText: '1',
+                                                prefixIcon: const Icon(
+                                                  Icons.shopping_cart_rounded,
+                                                  color: AppColors.primaryBlue,
+                                                ),
                                                 border: OutlineInputBorder(
-                                                  borderRadius: BorderRadius.circular(12),
+                                                  borderRadius: BorderRadius.circular(14),
+                                                ),
+                                                enabledBorder: OutlineInputBorder(
+                                                  borderRadius: BorderRadius.circular(14),
+                                                  borderSide: BorderSide(color: AppColors.divider),
+                                                ),
+                                                focusedBorder: OutlineInputBorder(
+                                                  borderRadius: BorderRadius.circular(14),
+                                                  borderSide: const BorderSide(
+                                                    color: AppColors.primaryBlue,
+                                                    width: 2,
+                                                  ),
                                                 ),
                                                 filled: true,
                                                 fillColor: Colors.white,
@@ -229,32 +323,66 @@ class _ItemDetailPageState extends State<ItemDetailPage> {
                                         ),
                                       ],
                                     ),
+
+                                    // Descrição
                                     _buildFormField(
                                       child: TextFormField(
                                         initialValue: description,
                                         decoration: InputDecoration(
                                           labelText: 'Descrição',
-                                          prefixIcon: const Icon(Icons.description_outlined),
+                                          hintText: 'Detalhes sobre o item (opcional)',
+                                          prefixIcon: const Icon(
+                                            Icons.description_rounded,
+                                            color: AppColors.accentBlue,
+                                          ),
                                           border: OutlineInputBorder(
-                                            borderRadius: BorderRadius.circular(12),
+                                            borderRadius: BorderRadius.circular(14),
+                                          ),
+                                          enabledBorder: OutlineInputBorder(
+                                            borderRadius: BorderRadius.circular(14),
+                                            borderSide: BorderSide(color: AppColors.divider),
+                                          ),
+                                          focusedBorder: OutlineInputBorder(
+                                            borderRadius: BorderRadius.circular(14),
+                                            borderSide: const BorderSide(
+                                              color: AppColors.primaryBlue,
+                                              width: 2,
+                                            ),
                                           ),
                                           filled: true,
                                           fillColor: Colors.white,
+                                          alignLabelWithHint: true,
                                         ),
                                         maxLines: 3,
-                                        onSaved: (value) => description = value!.trim(),
-                                        validator: (value) => value == null || value.isEmpty
-                                            ? 'Informe a descrição'
-                                            : null,
+                                        textCapitalization: TextCapitalization.sentences,
+                                        onSaved: (value) => description = value?.trim() ?? '',
+                                        validator: (value) => null,
                                       ),
                                     ),
+
+                                    // Categoria
                                     _buildFormField(
                                       child: DropdownButtonFormField<String>(
                                         decoration: InputDecoration(
                                           labelText: 'Categoria',
-                                          prefixIcon: const Icon(Icons.category_outlined),
+                                          hintText: 'Selecione uma categoria',
+                                          prefixIcon: const Icon(
+                                            Icons.category_rounded,
+                                            color: AppColors.warning,
+                                          ),
                                           border: OutlineInputBorder(
-                                            borderRadius: BorderRadius.circular(12),
+                                            borderRadius: BorderRadius.circular(14),
+                                          ),
+                                          enabledBorder: OutlineInputBorder(
+                                            borderRadius: BorderRadius.circular(14),
+                                            borderSide: BorderSide(color: AppColors.divider),
+                                          ),
+                                          focusedBorder: OutlineInputBorder(
+                                            borderRadius: BorderRadius.circular(14),
+                                            borderSide: const BorderSide(
+                                              color: AppColors.primaryBlue,
+                                              width: 2,
+                                            ),
                                           ),
                                           filled: true,
                                           fillColor: Colors.white,
@@ -273,75 +401,78 @@ class _ItemDetailPageState extends State<ItemDetailPage> {
                                         validator: (value) => null,
                                       ),
                                     ),
-                                    const SizedBox(height: 4),
 
                                     // Botão de atualizar preço
-                                    SizedBox(
-                                      width: double.infinity,
-                                      height: 56,
-                                      child: OutlinedButton(
-                                        style: OutlinedButton.styleFrom(
-                                          foregroundColor: Colors.blue[700],
-                                          side: BorderSide(color: Colors.blue[300]!),
-                                          shape: RoundedRectangleBorder(
-                                            borderRadius: BorderRadius.circular(12),
+                                    Container(
+                                      margin: const EdgeInsets.only(top: 4),
+                                      child: SizedBox(
+                                        width: double.infinity,
+                                        height: 52,
+                                        child: OutlinedButton.icon(
+                                          style: OutlinedButton.styleFrom(
+                                            foregroundColor: AppColors.primaryBlue,
+                                            side: const BorderSide(
+                                              color: AppColors.primaryBlue,
+                                              width: 1.5,
+                                            ),
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius: BorderRadius.circular(14),
+                                            ),
+                                            backgroundColor: AppColors.primaryBlue.withOpacity(
+                                              0.05,
+                                            ),
                                           ),
-                                        ),
-                                        onPressed: () async {
-                                          final updatedPrice = await Navigator.push<double>(
-                                            context,
-                                            MaterialPageRoute(
-                                              builder: (_) => ChangeNotifierProvider(
-                                                create: (_) => ItemPriceController(),
-                                                child: PriceUpdatePage(item: widget.item),
+                                          onPressed: () async {
+                                            final updatedPrice = await Navigator.push<double>(
+                                              context,
+                                              MaterialPageRoute(
+                                                builder: (_) => ChangeNotifierProvider(
+                                                  create: (_) => ItemPriceController(),
+                                                  child: PriceUpdatePage(item: widget.item),
+                                                ),
                                               ),
-                                            ),
-                                          );
+                                            );
 
-                                          if (updatedPrice != null) {
-                                            final newPriceCentavos = (updatedPrice * 100).round();
-                                            setState(() {
-                                              priceCentavos = newPriceCentavos;
-                                            });
-                                            // A atualização no banco já foi feita pelo PriceUpdatePage
-                                          }
-                                        },
-                                        child: Row(
-                                          mainAxisAlignment: MainAxisAlignment.center,
-                                          children: [
-                                            Icon(Icons.price_change, color: Colors.blue[700]),
-                                            const SizedBox(width: 8),
-                                            Text(
-                                              'Atualizar Preço e Ver Histórico',
-                                              style: TextStyle(
-                                                fontSize: 16,
-                                                fontWeight: FontWeight.w600,
-                                                color: Colors.blue[700],
-                                              ),
+                                            if (updatedPrice != null) {
+                                              final newPriceCentavos = (updatedPrice * 100).round();
+                                              setState(() {
+                                                priceCentavos = newPriceCentavos;
+                                              });
+                                              // A atualização no banco já foi feita pelo PriceUpdatePage
+                                            }
+                                          },
+                                          icon: const Icon(Icons.price_change_rounded, size: 22),
+                                          label: const Text(
+                                            'Atualizar Preço e Ver Histórico',
+                                            style: TextStyle(
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.w600,
                                             ),
-                                          ],
+                                          ),
                                         ),
                                       ),
                                     ),
 
-                                    const SizedBox(height: 120), // Espaço para os botões fixos
+                                    const SizedBox(height: 80),
                                   ],
                                 ),
                               ),
-                            ),
-                          ],
-                        ),
                       ),
+                    ],
+                  ),
+                ),
               ),
+
+              // Botões fixos na parte inferior com design moderno
               Container(
-                padding: const EdgeInsets.all(24),
+                padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.1),
-                      blurRadius: 10,
-                      offset: const Offset(0, -2),
+                      color: Colors.black.withOpacity(0.08),
+                      blurRadius: 16,
+                      offset: const Offset(0, -4),
                     ),
                   ],
                 ),
@@ -350,58 +481,73 @@ class _ItemDetailPageState extends State<ItemDetailPage> {
                     children: [
                       Expanded(
                         child: OutlinedButton(
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: Colors.grey[700],
-                            side: BorderSide(color: Colors.grey[300]!),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                            minimumSize: const Size(0, 56),
-                          ),
                           onPressed: () => Navigator.pop(context),
+                          style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            side: BorderSide(color: AppColors.divider, width: 1.5),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          ),
                           child: const Text(
                             'Cancelar',
-                            style: TextStyle(fontWeight: FontWeight.w600),
+                            style: TextStyle(
+                              color: AppColors.textSecondary,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 16,
+                            ),
                           ),
                         ),
                       ),
-                      const SizedBox(width: 16),
+                      const SizedBox(width: 12),
                       Expanded(
                         flex: 2,
-                        child: ElevatedButton(
+                        child: ElevatedButton.icon(
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.lightBlue[700],
+                            backgroundColor: AppColors.primaryBlue,
                             foregroundColor: Colors.white,
-                            elevation: 2,
+                            elevation: 0,
+                            shadowColor: AppColors.primaryBlue.withOpacity(0.3),
+                            padding: const EdgeInsets.symmetric(vertical: 16),
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                            minimumSize: const Size(0, 56),
                           ),
-                          onPressed: () async {
-                            if (_formKey.currentState!.validate()) {
-                              _formKey.currentState!.save();
-                              final updatedItem = MarketItem(
-                                id: widget.item.id,
-                                name: name,
-                                priceCentavos: priceCentavos,
-                                quantity: quantity,
-                                description: description,
-                                category: category,
-                              );
-                              await Provider.of<MarketItemController>(
-                                context,
-                                listen: false,
-                              ).updateItem(updatedItem);
-                              Navigator.pop(context);
-                            }
-                          },
-                          child: const Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(Icons.save_outlined),
-                              SizedBox(width: 8),
-                              Text(
-                                'Salvar Alterações',
-                                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                              ),
-                            ],
+                          onPressed: _isLoading
+                              ? null
+                              : () async {
+                                  if (_formKey.currentState!.validate()) {
+                                    setState(() => _isLoading = true);
+                                    _formKey.currentState!.save();
+
+                                    final updatedItem = MarketItem(
+                                      id: widget.item.id,
+                                      name: name,
+                                      priceCentavos: priceCentavos,
+                                      quantity: quantity,
+                                      description: description,
+                                      category: category,
+                                    );
+
+                                    await Provider.of<MarketItemController>(
+                                      context,
+                                      listen: false,
+                                    ).updateItem(updatedItem);
+
+                                    if (mounted) {
+                                      Navigator.pop(context);
+                                    }
+                                  }
+                                },
+                          icon: _isLoading
+                              ? const SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                  ),
+                                )
+                              : const Icon(Icons.save_rounded, size: 20),
+                          label: Text(
+                            _isLoading ? 'Salvando...' : 'Salvar Alterações',
+                            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                           ),
                         ),
                       ),
@@ -411,7 +557,7 @@ class _ItemDetailPageState extends State<ItemDetailPage> {
               ),
             ],
           ),
-        ],
+        ),
       ),
     );
   }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:market_express/utils/app_colors.dart';
 import 'package:market_express/utils/price_helper.dart';
 import 'package:provider/provider.dart';
 
@@ -7,7 +8,9 @@ import '../controllers/PurchasesController.dart';
 import '../models/PurchaseModel.dart';
 
 class CreatePurchasePage extends StatefulWidget {
-  const CreatePurchasePage({super.key});
+  final Purchase? basePurchase; // Para criar lista baseada em outra
+
+  const CreatePurchasePage({super.key, this.basePurchase});
 
   @override
   State<CreatePurchasePage> createState() => _CreatePurchasePageState();
@@ -20,6 +23,16 @@ class _CreatePurchasePageState extends State<CreatePurchasePage> {
   final Set<int> selectedItemIds = {};
 
   @override
+  void initState() {
+    super.initState();
+    // Se tiver uma compra base, preencher os dados
+    if (widget.basePurchase != null) {
+      name = '${widget.basePurchase!.name} (Cópia)';
+      selectedItemIds.addAll(widget.basePurchase!.itemIds);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final items = Provider.of<MarketItemController>(context).items;
     final selectedTotalCentavos = items
@@ -28,12 +41,21 @@ class _CreatePurchasePageState extends State<CreatePurchasePage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Nova Compra', style: TextStyle(fontWeight: FontWeight.w600)),
-        backgroundColor: Colors.lightBlue[700],
+        title: Text(
+          widget.basePurchase != null ? 'Nova Compra (Baseada)' : 'Nova Compra',
+          style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+        ),
+        backgroundColor: AppColors.primaryBlue,
         elevation: 0,
-        leading: IconButton(icon: const Icon(Icons.close), onPressed: () => Navigator.pop(context)),
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(gradient: AppColors.primaryGradient),
+        ),
+        leading: IconButton(
+          icon: const Icon(Icons.close, color: Colors.white),
+          onPressed: () => Navigator.pop(context),
+        ),
       ),
-      backgroundColor: Colors.grey[50],
+      backgroundColor: AppColors.background,
       body: Stack(
         children: [
           Column(
@@ -42,12 +64,16 @@ class _CreatePurchasePageState extends State<CreatePurchasePage> {
                 width: double.infinity,
                 padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [Colors.white, Colors.grey[50]!],
+                  ),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
+                      color: Colors.black.withOpacity(0.08),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
                     ),
                   ],
                 ),
@@ -57,13 +83,26 @@ class _CreatePurchasePageState extends State<CreatePurchasePage> {
                     Row(
                       children: [
                         Container(
-                          width: 48,
-                          height: 48,
+                          width: 56,
+                          height: 56,
                           decoration: BoxDecoration(
-                            color: Colors.lightBlue[100],
-                            borderRadius: BorderRadius.circular(12),
+                            gradient: LinearGradient(
+                              colors: [Colors.lightBlue[400]!, Colors.lightBlue[600]!],
+                            ),
+                            borderRadius: BorderRadius.circular(14),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.lightBlue.withOpacity(0.3),
+                                blurRadius: 8,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
                           ),
-                          child: Icon(Icons.playlist_add, color: Colors.lightBlue[700], size: 24),
+                          child: const Icon(
+                            Icons.playlist_add_rounded,
+                            color: Colors.white,
+                            size: 28,
+                          ),
                         ),
                         const SizedBox(width: 16),
                         Expanded(
@@ -73,14 +112,20 @@ class _CreatePurchasePageState extends State<CreatePurchasePage> {
                               const Text(
                                 'Nova Lista de Compras',
                                 style: TextStyle(
-                                  fontSize: 24,
-                                  fontWeight: FontWeight.bold,
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.w800,
                                   color: Colors.black87,
+                                  letterSpacing: -0.5,
                                 ),
                               ),
+                              const SizedBox(height: 4),
                               Text(
                                 'Selecione os itens para sua compra',
-                                style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: Colors.grey[600],
+                                  fontWeight: FontWeight.w500,
+                                ),
                               ),
                             ],
                           ),
@@ -102,9 +147,28 @@ class _CreatePurchasePageState extends State<CreatePurchasePage> {
                           TextFormField(
                             decoration: InputDecoration(
                               labelText: 'Nome da compra',
+                              labelStyle: TextStyle(
+                                color: Colors.grey[700],
+                                fontWeight: FontWeight.w600,
+                              ),
                               hintText: 'Ex: Compra do mês',
-                              prefixIcon: const Icon(Icons.edit_outlined),
-                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                              hintStyle: TextStyle(color: Colors.grey[400]),
+                              prefixIcon: Icon(
+                                Icons.edit_note_rounded,
+                                color: Colors.lightBlue[600],
+                              ),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(14),
+                                borderSide: BorderSide(color: Colors.grey[300]!),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(14),
+                                borderSide: BorderSide(color: Colors.grey[300]!),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(14),
+                                borderSide: BorderSide(color: Colors.lightBlue[600]!, width: 2),
+                              ),
                               filled: true,
                               fillColor: Colors.white,
                             ),
@@ -124,15 +188,42 @@ class _CreatePurchasePageState extends State<CreatePurchasePage> {
                               if (picked != null) setState(() => date = picked);
                             },
                             child: Container(
-                              padding: const EdgeInsets.all(16),
+                              padding: const EdgeInsets.all(18),
                               decoration: BoxDecoration(
                                 color: Colors.white,
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(color: Colors.grey[300]!),
+                                borderRadius: BorderRadius.circular(14),
+                                border: Border.all(color: Colors.grey[300]!, width: 1.5),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.05),
+                                    blurRadius: 8,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
                               ),
                               child: Row(
                                 children: [
-                                  Icon(Icons.calendar_today, color: Colors.grey[600]),
+                                  Container(
+                                    padding: const EdgeInsets.all(10),
+                                    decoration: BoxDecoration(
+                                      gradient: LinearGradient(
+                                        colors: [Colors.purple[300]!, Colors.purple[500]!],
+                                      ),
+                                      borderRadius: BorderRadius.circular(10),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.purple.withOpacity(0.3),
+                                          blurRadius: 6,
+                                          offset: const Offset(0, 2),
+                                        ),
+                                      ],
+                                    ),
+                                    child: const Icon(
+                                      Icons.calendar_month_rounded,
+                                      color: Colors.white,
+                                      size: 20,
+                                    ),
+                                  ),
                                   const SizedBox(width: 16),
                                   Expanded(
                                     child: Column(
@@ -140,20 +231,29 @@ class _CreatePurchasePageState extends State<CreatePurchasePage> {
                                       children: [
                                         Text(
                                           'Data da compra',
-                                          style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            color: Colors.grey[600],
+                                            fontWeight: FontWeight.w600,
+                                          ),
                                         ),
                                         const SizedBox(height: 4),
                                         Text(
                                           '${date.day}/${date.month}/${date.year}',
                                           style: const TextStyle(
                                             fontSize: 16,
-                                            fontWeight: FontWeight.w500,
+                                            fontWeight: FontWeight.w700,
+                                            color: Colors.black87,
                                           ),
                                         ),
                                       ],
                                     ),
                                   ),
-                                  Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey[400]),
+                                  Icon(
+                                    Icons.arrow_forward_ios_rounded,
+                                    size: 16,
+                                    color: Colors.grey[400],
+                                  ),
                                 ],
                               ),
                             ),
@@ -162,27 +262,63 @@ class _CreatePurchasePageState extends State<CreatePurchasePage> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              const Text(
-                                'Itens disponíveis',
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.black87,
-                                ),
+                              Row(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.all(6),
+                                    decoration: BoxDecoration(
+                                      gradient: LinearGradient(
+                                        colors: [Colors.green[400]!, Colors.green[600]!],
+                                      ),
+                                      borderRadius: BorderRadius.circular(8),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.green.withOpacity(0.3),
+                                          blurRadius: 6,
+                                          offset: const Offset(0, 2),
+                                        ),
+                                      ],
+                                    ),
+                                    child: const Icon(
+                                      Icons.inventory_2_rounded,
+                                      color: Colors.white,
+                                      size: 16,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 10),
+                                  const Text(
+                                    'Itens disponíveis',
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.w800,
+                                      color: Colors.black87,
+                                      letterSpacing: -0.5,
+                                    ),
+                                  ),
+                                ],
                               ),
                               if (selectedItemIds.isNotEmpty)
                                 Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                                   decoration: BoxDecoration(
-                                    color: Colors.lightBlue[100],
+                                    gradient: LinearGradient(
+                                      colors: [Colors.lightBlue[400]!, Colors.lightBlue[600]!],
+                                    ),
                                     borderRadius: BorderRadius.circular(20),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.lightBlue.withOpacity(0.3),
+                                        blurRadius: 6,
+                                        offset: const Offset(0, 2),
+                                      ),
+                                    ],
                                   ),
                                   child: Text(
                                     '${selectedItemIds.length} selecionado${selectedItemIds.length != 1 ? 's' : ''}',
-                                    style: TextStyle(
+                                    style: const TextStyle(
                                       fontSize: 12,
-                                      color: Colors.lightBlue[700],
-                                      fontWeight: FontWeight.w600,
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w700,
                                     ),
                                   ),
                                 ),
@@ -191,29 +327,49 @@ class _CreatePurchasePageState extends State<CreatePurchasePage> {
                           const SizedBox(height: 16),
                           if (items.isEmpty)
                             Container(
-                              padding: const EdgeInsets.all(32),
+                              padding: const EdgeInsets.all(40),
                               decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(color: Colors.grey[200]!),
+                                gradient: LinearGradient(
+                                  colors: [Colors.grey[50]!, Colors.grey[100]!],
+                                ),
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(color: Colors.grey[200]!, width: 1.5),
                               ),
                               child: Center(
                                 child: Column(
                                   children: [
-                                    Icon(
-                                      Icons.inventory_outlined,
-                                      size: 48,
-                                      color: Colors.grey[400],
+                                    Container(
+                                      padding: const EdgeInsets.all(20),
+                                      decoration: BoxDecoration(
+                                        color: Colors.white,
+                                        shape: BoxShape.circle,
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: Colors.black.withOpacity(0.1),
+                                            blurRadius: 12,
+                                            offset: const Offset(0, 4),
+                                          ),
+                                        ],
+                                      ),
+                                      child: Icon(
+                                        Icons.inventory_2_outlined,
+                                        size: 48,
+                                        color: Colors.grey[400],
+                                      ),
                                     ),
-                                    const SizedBox(height: 16),
+                                    const SizedBox(height: 20),
                                     Text(
                                       'Nenhum item cadastrado',
-                                      style: TextStyle(color: Colors.grey[600]),
+                                      style: TextStyle(
+                                        color: Colors.grey[700],
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w600,
+                                      ),
                                     ),
                                     const SizedBox(height: 8),
                                     Text(
                                       'Adicione itens na lista primeiro',
-                                      style: TextStyle(fontSize: 12, color: Colors.grey[500]),
+                                      style: TextStyle(fontSize: 13, color: Colors.grey[500]),
                                     ),
                                   ],
                                 ),
@@ -222,58 +378,172 @@ class _CreatePurchasePageState extends State<CreatePurchasePage> {
                           else
                             ...items.map(
                               (item) => Container(
-                                margin: const EdgeInsets.only(bottom: 8),
+                                margin: const EdgeInsets.only(bottom: 12),
                                 decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(12),
+                                  gradient: LinearGradient(
+                                    colors: selectedItemIds.contains(item.id)
+                                        ? [
+                                            Colors.lightBlue[50]!,
+                                            Colors.lightBlue[100]!.withOpacity(0.3),
+                                          ]
+                                        : [Colors.white, Colors.grey[50]!],
+                                  ),
+                                  borderRadius: BorderRadius.circular(16),
                                   border: Border.all(
                                     color: selectedItemIds.contains(item.id)
-                                        ? Colors.lightBlue[300]!
+                                        ? Colors.lightBlue[400]!
                                         : Colors.grey[200]!,
-                                    width: selectedItemIds.contains(item.id) ? 2 : 1,
+                                    width: selectedItemIds.contains(item.id) ? 2 : 1.5,
                                   ),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: selectedItemIds.contains(item.id)
+                                          ? Colors.lightBlue.withOpacity(0.15)
+                                          : Colors.black.withOpacity(0.05),
+                                      blurRadius: 8,
+                                      offset: const Offset(0, 3),
+                                    ),
+                                  ],
                                 ),
                                 child: CheckboxListTile(
                                   contentPadding: const EdgeInsets.symmetric(
-                                    horizontal: 16,
-                                    vertical: 8,
+                                    horizontal: 18,
+                                    vertical: 12,
                                   ),
                                   title: Text(
                                     item.name,
-                                    style: const TextStyle(fontWeight: FontWeight.w500),
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.w700,
+                                      fontSize: 16,
+                                      color: Colors.black87,
+                                      letterSpacing: -0.3,
+                                    ),
                                   ),
                                   subtitle: Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      Text(item.category ?? ''),
-                                      const SizedBox(height: 4),
+                                      const SizedBox(height: 8),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 8,
+                                          vertical: 4,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          gradient: LinearGradient(
+                                            colors: [Colors.purple[100]!, Colors.purple[200]!],
+                                          ),
+                                          borderRadius: BorderRadius.circular(8),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: Colors.purple.withOpacity(0.2),
+                                              blurRadius: 4,
+                                              offset: const Offset(0, 2),
+                                            ),
+                                          ],
+                                        ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Icon(
+                                              Icons.category_rounded,
+                                              size: 12,
+                                              color: Colors.purple[700],
+                                            ),
+                                            const SizedBox(width: 4),
+                                            Text(
+                                              item.category ?? 'Sem categoria',
+                                              style: TextStyle(
+                                                fontSize: 12,
+                                                color: Colors.purple[700],
+                                                fontWeight: FontWeight.w600,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      const SizedBox(height: 10),
                                       Row(
                                         children: [
                                           Container(
                                             padding: const EdgeInsets.symmetric(
-                                              horizontal: 6,
-                                              vertical: 2,
+                                              horizontal: 10,
+                                              vertical: 6,
                                             ),
                                             decoration: BoxDecoration(
-                                              color: Colors.grey[100],
-                                              borderRadius: BorderRadius.circular(8),
-                                            ),
-                                            child: Text(
-                                              'Qtd: ${item.quantity}',
-                                              style: TextStyle(
-                                                fontSize: 11,
-                                                color: Colors.grey[700],
+                                              gradient: LinearGradient(
+                                                colors: [Colors.orange[100]!, Colors.orange[200]!],
                                               ),
+                                              borderRadius: BorderRadius.circular(10),
+                                              boxShadow: [
+                                                BoxShadow(
+                                                  color: Colors.orange.withOpacity(0.2),
+                                                  blurRadius: 4,
+                                                  offset: const Offset(0, 2),
+                                                ),
+                                              ],
+                                            ),
+                                            child: Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                Icon(
+                                                  Icons.inventory_2_rounded,
+                                                  size: 13,
+                                                  color: Colors.orange[800],
+                                                ),
+                                                const SizedBox(width: 4),
+                                                Text(
+                                                  'Qtd: ${item.quantity}',
+                                                  style: TextStyle(
+                                                    fontSize: 12,
+                                                    color: Colors.orange[800],
+                                                    fontWeight: FontWeight.w700,
+                                                  ),
+                                                ),
+                                              ],
                                             ),
                                           ),
-                                          const SizedBox(width: 8),
-                                          Text(
-                                            PriceHelper.centavosToFormattedString(
-                                              item.priceCentavos ?? 0,
+                                          const SizedBox(width: 10),
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 10,
+                                              vertical: 6,
                                             ),
-                                            style: TextStyle(
-                                              fontWeight: FontWeight.w600,
-                                              color: Colors.lightBlue[700],
+                                            decoration: BoxDecoration(
+                                              gradient: LinearGradient(
+                                                colors: [
+                                                  Colors.lightBlue[100]!,
+                                                  Colors.lightBlue[200]!,
+                                                ],
+                                              ),
+                                              borderRadius: BorderRadius.circular(10),
+                                              boxShadow: [
+                                                BoxShadow(
+                                                  color: Colors.lightBlue.withOpacity(0.2),
+                                                  blurRadius: 4,
+                                                  offset: const Offset(0, 2),
+                                                ),
+                                              ],
+                                            ),
+                                            child: Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                Icon(
+                                                  Icons.attach_money_rounded,
+                                                  size: 15,
+                                                  color: Colors.lightBlue[800],
+                                                ),
+                                                Text(
+                                                  PriceHelper.centavosToFormattedString(
+                                                    item.priceCentavos ?? 0,
+                                                  ),
+                                                  style: TextStyle(
+                                                    fontSize: 13,
+                                                    fontWeight: FontWeight.w700,
+                                                    color: Colors.lightBlue[800],
+                                                    letterSpacing: -0.3,
+                                                  ),
+                                                ),
+                                              ],
                                             ),
                                           ),
                                         ],
@@ -290,8 +560,12 @@ class _CreatePurchasePageState extends State<CreatePurchasePage> {
                                       }
                                     });
                                   },
-                                  activeColor: Colors.lightBlue[700],
+                                  activeColor: Colors.lightBlue[600],
+                                  checkColor: Colors.white,
                                   controlAffinity: ListTileControlAffinity.trailing,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
                                 ),
                               ),
                             ),
@@ -305,33 +579,90 @@ class _CreatePurchasePageState extends State<CreatePurchasePage> {
                 Container(
                   padding: const EdgeInsets.all(24),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [Colors.white, Colors.grey[50]!],
+                    ),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
-                        blurRadius: 8,
-                        offset: const Offset(0, -2),
+                        color: Colors.black.withOpacity(0.15),
+                        blurRadius: 20,
+                        offset: const Offset(0, -4),
                       ),
                     ],
+                    border: Border(top: BorderSide(color: Colors.grey[200]!, width: 1)),
                   ),
                   child: Column(
                     children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Text(
-                            'Total estimado:',
-                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-                          ),
-                          Text(
-                            PriceHelper.centavosToFormattedString(selectedTotalCentavos),
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.lightBlue[700],
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(colors: [Colors.green[50]!, Colors.green[100]!]),
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(color: Colors.green[200]!, width: 1.5),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.green.withOpacity(0.15),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    gradient: LinearGradient(
+                                      colors: [Colors.green[400]!, Colors.green[600]!],
+                                    ),
+                                    borderRadius: BorderRadius.circular(10),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.green.withOpacity(0.3),
+                                        blurRadius: 6,
+                                        offset: const Offset(0, 2),
+                                      ),
+                                    ],
+                                  ),
+                                  child: const Icon(
+                                    Icons.calculate_rounded,
+                                    color: Colors.white,
+                                    size: 20,
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Total estimado',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w500,
+                                        color: Colors.grey[600],
+                                      ),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      PriceHelper.centavosToFormattedString(selectedTotalCentavos),
+                                      style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.w800,
+                                        color: Colors.green[700],
+                                        letterSpacing: -0.5,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
                       ),
                       const SizedBox(height: 16),
                       SizedBox(
@@ -339,10 +670,12 @@ class _CreatePurchasePageState extends State<CreatePurchasePage> {
                         height: 56,
                         child: ElevatedButton(
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.lightBlue[700],
+                            backgroundColor: Colors.transparent,
                             foregroundColor: Colors.white,
-                            elevation: 2,
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            elevation: 0,
+                            shadowColor: Colors.transparent,
+                            padding: EdgeInsets.zero,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                           ),
                           onPressed: () {
                             if (_formKey.currentState!.validate() && selectedItemIds.isNotEmpty) {
@@ -364,16 +697,38 @@ class _CreatePurchasePageState extends State<CreatePurchasePage> {
                               Navigator.pop(context);
                             }
                           },
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              const Icon(Icons.shopping_cart),
-                              const SizedBox(width: 8),
-                              Text(
-                                'Criar Compra (${selectedItemIds.length} ${selectedItemIds.length == 1 ? 'item' : 'itens'})',
-                                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                          child: Ink(
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [Colors.lightBlue[400]!, Colors.lightBlue[600]!],
                               ),
-                            ],
+                              borderRadius: BorderRadius.circular(14),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.lightBlue.withOpacity(0.4),
+                                  blurRadius: 12,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: Container(
+                              alignment: Alignment.center,
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  const Icon(Icons.add_shopping_cart_rounded, size: 24),
+                                  const SizedBox(width: 12),
+                                  Text(
+                                    'Criar Compra (${selectedItemIds.length} ${selectedItemIds.length == 1 ? 'item' : 'itens'})',
+                                    style: const TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w700,
+                                      letterSpacing: -0.3,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
                           ),
                         ),
                       ),

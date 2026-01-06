@@ -3,6 +3,7 @@ import 'package:market_express/controllers/ItemMarketController.dart';
 import 'package:market_express/models/ItemMarketModel.dart';
 import 'package:market_express/screens/AddItemPage.dart';
 import 'package:market_express/screens/ItemDetailsPage.dart';
+import 'package:market_express/utils/app_colors.dart';
 import 'package:market_express/utils/price_helper.dart';
 import 'package:market_express/utils/watermark_widget.dart';
 import 'package:provider/provider.dart';
@@ -33,27 +34,43 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Market Express', style: TextStyle(fontWeight: FontWeight.w600)),
-        backgroundColor: Colors.lightBlue[700],
+        title: const Text(
+          'Market Express',
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22),
+        ),
+        backgroundColor: AppColors.primaryBlue,
         elevation: 0,
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(gradient: AppColors.primaryGradient),
+        ),
       ),
-      backgroundColor: Colors.grey[50],
+      backgroundColor: AppColors.background,
       body: Stack(
         children: [
           Column(
             children: [
-              // Barra de pesquisa
+              // Barra de pesquisa com design aprimorado
               Container(
                 padding: const EdgeInsets.all(16),
-                color: Colors.white,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.05),
+                      blurRadius: 10,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
                 child: TextField(
                   controller: _searchController,
                   decoration: InputDecoration(
                     hintText: 'Pesquisar produtos...',
-                    prefixIcon: Icon(Icons.search, color: Colors.grey[600]),
+                    hintStyle: TextStyle(color: AppColors.textLight),
+                    prefixIcon: Icon(Icons.search, color: AppColors.primaryBlue),
                     suffixIcon: _searchController.text.isNotEmpty
                         ? IconButton(
-                            icon: Icon(Icons.clear, color: Colors.grey[600]),
+                            icon: Icon(Icons.clear, color: AppColors.textSecondary),
                             onPressed: () {
                               _searchController.clear();
                               Provider.of<MarketItemController>(
@@ -65,18 +82,19 @@ class _HomePageState extends State<HomePage> {
                         : null,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: Colors.grey[300]!),
+                      borderSide: BorderSide(color: AppColors.divider),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: Colors.grey[300]!),
+                      borderSide: BorderSide(color: AppColors.divider),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: Colors.lightBlue[700]!),
+                      borderSide: const BorderSide(color: AppColors.primaryBlue, width: 2),
                     ),
                     filled: true,
-                    fillColor: Colors.grey[50],
+                    fillColor: AppColors.backgroundBlue,
+                    contentPadding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
                   ),
                   onChanged: (value) {
                     setState(() {});
@@ -135,19 +153,20 @@ class _HomePageState extends State<HomePage> {
                             margin: const EdgeInsets.only(bottom: 12),
                             decoration: BoxDecoration(
                               color: Colors.white,
-                              borderRadius: BorderRadius.circular(12),
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(color: AppColors.divider.withOpacity(0.5)),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.black.withOpacity(0.05),
-                                  blurRadius: 8,
-                                  offset: const Offset(0, 2),
+                                  color: AppColors.primaryBlue.withOpacity(0.08),
+                                  blurRadius: 12,
+                                  offset: const Offset(0, 4),
                                 ),
                               ],
                             ),
                             child: Material(
                               color: Colors.transparent,
                               child: InkWell(
-                                borderRadius: BorderRadius.circular(12),
+                                borderRadius: BorderRadius.circular(16),
                                 onTap: () {
                                   Navigator.push(
                                     context,
@@ -160,16 +179,23 @@ class _HomePageState extends State<HomePage> {
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
                                       Container(
-                                        width: 48,
-                                        height: 48,
+                                        width: 56,
+                                        height: 56,
                                         decoration: BoxDecoration(
-                                          color: Colors.lightBlue[100],
-                                          borderRadius: BorderRadius.circular(8),
+                                          gradient: AppColors.primaryGradient,
+                                          borderRadius: BorderRadius.circular(12),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: AppColors.primaryBlue.withOpacity(0.3),
+                                              blurRadius: 8,
+                                              offset: const Offset(0, 2),
+                                            ),
+                                          ],
                                         ),
-                                        child: Icon(
-                                          Icons.inventory_2_outlined,
-                                          color: Colors.lightBlue[700],
-                                          size: 24,
+                                        child: const Icon(
+                                          Icons.inventory_2_rounded,
+                                          color: Colors.white,
+                                          size: 28,
                                         ),
                                       ),
                                       const SizedBox(width: 16),
@@ -180,9 +206,10 @@ class _HomePageState extends State<HomePage> {
                                             Text(
                                               item.name,
                                               style: const TextStyle(
-                                                fontSize: 16,
-                                                fontWeight: FontWeight.w600,
-                                                color: Colors.black87,
+                                                fontSize: 17,
+                                                fontWeight: FontWeight.bold,
+                                                color: AppColors.textPrimary,
+                                                letterSpacing: -0.5,
                                               ),
                                             ),
                                             // Adicionar descrição se existir
@@ -191,42 +218,75 @@ class _HomePageState extends State<HomePage> {
                                               const SizedBox(height: 4),
                                               Text(
                                                 item.description!,
-                                                style: TextStyle(
+                                                style: const TextStyle(
                                                   fontSize: 13,
-                                                  color: Colors.grey[700],
+                                                  color: AppColors.textSecondary,
                                                   fontStyle: FontStyle.italic,
                                                 ),
                                                 maxLines: 2,
                                                 overflow: TextOverflow.ellipsis,
                                               ),
                                             ],
-                                            const SizedBox(height: 4),
-                                            Text(
-                                              item.category ?? '',
-                                              style: TextStyle(
-                                                fontSize: 14,
-                                                color: Colors.grey[600],
+                                            const SizedBox(height: 6),
+                                            if (item.category != null && item.category!.isNotEmpty)
+                                              Container(
+                                                padding: const EdgeInsets.symmetric(
+                                                  horizontal: 8,
+                                                  vertical: 4,
+                                                ),
+                                                decoration: BoxDecoration(
+                                                  color: AppColors.getCategoryColorLight(
+                                                    item.category,
+                                                  ),
+                                                  borderRadius: BorderRadius.circular(6),
+                                                  border: Border.all(
+                                                    color: AppColors.getCategoryColor(
+                                                      item.category,
+                                                    ).withOpacity(0.4),
+                                                    width: 1.5,
+                                                  ),
+                                                ),
+                                                child: Text(
+                                                  item.category!,
+                                                  style: TextStyle(
+                                                    fontSize: 12,
+                                                    color: AppColors.getCategoryColor(
+                                                      item.category,
+                                                    ).withOpacity(0.85),
+                                                    fontWeight: FontWeight.w700,
+                                                  ),
+                                                ),
                                               ),
-                                            ),
                                             const SizedBox(height: 8),
                                             Row(
                                               children: [
                                                 Container(
                                                   padding: const EdgeInsets.symmetric(
-                                                    horizontal: 8,
-                                                    vertical: 4,
+                                                    horizontal: 10,
+                                                    vertical: 5,
                                                   ),
                                                   decoration: BoxDecoration(
-                                                    color: Colors.grey[100],
-                                                    borderRadius: BorderRadius.circular(12),
+                                                    color: AppColors.backgroundBlue,
+                                                    borderRadius: BorderRadius.circular(8),
+                                                    border: Border.all(color: AppColors.divider),
                                                   ),
-                                                  child: Text(
-                                                    'Qtd: ${item.quantity}',
-                                                    style: TextStyle(
-                                                      fontSize: 12,
-                                                      color: Colors.grey[700],
-                                                      fontWeight: FontWeight.w500,
-                                                    ),
+                                                  child: Row(
+                                                    children: [
+                                                      const Icon(
+                                                        Icons.shopping_cart_outlined,
+                                                        size: 14,
+                                                        color: AppColors.primaryBlue,
+                                                      ),
+                                                      const SizedBox(width: 4),
+                                                      Text(
+                                                        '${item.quantity}',
+                                                        style: const TextStyle(
+                                                          fontSize: 13,
+                                                          color: AppColors.textPrimary,
+                                                          fontWeight: FontWeight.w600,
+                                                        ),
+                                                      ),
+                                                    ],
                                                   ),
                                                 ),
                                                 const SizedBox(width: 8),
@@ -401,13 +461,29 @@ class _HomePageState extends State<HomePage> {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: Colors.lightBlue[700],
-        elevation: 4,
-        onPressed: () {
-          Navigator.push(context, MaterialPageRoute(builder: (_) => const AddItemPage()));
-        },
-        child: const Icon(Icons.add, color: Colors.white, size: 28),
+      floatingActionButton: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.primaryBlue.withOpacity(0.4),
+              blurRadius: 20,
+              offset: const Offset(0, 8),
+            ),
+          ],
+        ),
+        child: FloatingActionButton.extended(
+          backgroundColor: AppColors.primaryBlue,
+          elevation: 0,
+          onPressed: () {
+            Navigator.push(context, MaterialPageRoute(builder: (_) => const AddItemPage()));
+          },
+          icon: const Icon(Icons.add, color: Colors.white, size: 24),
+          label: const Text(
+            'Novo Item',
+            style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+          ),
+        ),
       ),
     );
   }

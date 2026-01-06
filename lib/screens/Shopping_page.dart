@@ -6,8 +6,11 @@ import 'package:market_express/models/PurchaseModel.dart';
 import 'package:market_express/screens/AddItemPage.dart';
 import 'package:market_express/screens/ItemDetailsPage.dart';
 import 'package:market_express/screens/SelectItemPage.dart';
+import 'package:market_express/utils/app_colors.dart';
 import 'package:market_express/utils/price_helper.dart';
 import 'package:provider/provider.dart';
+
+enum SortOption { alphabetical, categoryAlphabetical }
 
 class ShoppingPage extends StatefulWidget {
   final Purchase purchase;
@@ -19,6 +22,7 @@ class ShoppingPage extends StatefulWidget {
 
 class _ShoppingPageState extends State<ShoppingPage> {
   late Map<int, bool> _isAdded;
+  SortOption _currentSort = SortOption.alphabetical;
 
   @override
   void initState() {
@@ -26,11 +30,36 @@ class _ShoppingPageState extends State<ShoppingPage> {
     _isAdded = Map<int, bool>.from(widget.purchase.isAdded);
   }
 
+  List<MarketItem> _sortItems(List<MarketItem> items) {
+    final sortedItems = List<MarketItem>.from(items);
+
+    if (_currentSort == SortOption.alphabetical) {
+      sortedItems.sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+    } else if (_currentSort == SortOption.categoryAlphabetical) {
+      sortedItems.sort((a, b) {
+        final categoryA = a.category ?? '';
+        final categoryB = b.category ?? '';
+
+        // Primeiro compara por categoria
+        final categoryComparison = categoryA.toLowerCase().compareTo(categoryB.toLowerCase());
+        if (categoryComparison != 0) return categoryComparison;
+
+        // Se mesma categoria, ordena alfabeticamente
+        return a.name.toLowerCase().compareTo(b.name.toLowerCase());
+      });
+    }
+
+    return sortedItems;
+  }
+
   @override
   Widget build(BuildContext context) {
-    final items = Provider.of<MarketItemController>(
+    final allItems = Provider.of<MarketItemController>(
       context,
     ).items.where((item) => widget.purchase.itemIds.contains(item.id)).toList();
+
+    // Aplicar ordenação
+    final items = _sortItems(allItems);
 
     double _calculateTotal(List<MarketItem> items) {
       int totalCentavos = items.fold(
@@ -51,21 +80,94 @@ class _ShoppingPageState extends State<ShoppingPage> {
           children: [
             Text(
               widget.purchase.name,
-              style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 18),
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 18,
+                color: Colors.white,
+              ),
             ),
             Text(
               '$completedCount de $totalItems itens',
-              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w400),
+              style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w400,
+                color: Colors.white70,
+              ),
             ),
           ],
         ),
-        backgroundColor: Colors.lightBlue[700],
+        backgroundColor: AppColors.primaryBlue,
         elevation: 0,
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(gradient: AppColors.primaryGradient),
+        ),
         actions: [
+          // Botão de filtro
+          PopupMenuButton<SortOption>(
+            icon: const Icon(Icons.filter_list, color: Colors.white),
+            tooltip: 'Ordenar',
+            onSelected: (SortOption option) {
+              setState(() {
+                _currentSort = option;
+              });
+            },
+            itemBuilder: (context) => [
+              PopupMenuItem(
+                value: SortOption.alphabetical,
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.sort_by_alpha,
+                      color: _currentSort == SortOption.alphabetical
+                          ? AppColors.primaryBlue
+                          : AppColors.textSecondary,
+                    ),
+                    const SizedBox(width: 12),
+                    Text(
+                      'Ordem Alfabética',
+                      style: TextStyle(
+                        fontWeight: _currentSort == SortOption.alphabetical
+                            ? FontWeight.bold
+                            : FontWeight.normal,
+                        color: _currentSort == SortOption.alphabetical
+                            ? AppColors.primaryBlue
+                            : AppColors.textPrimary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              PopupMenuItem(
+                value: SortOption.categoryAlphabetical,
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.category,
+                      color: _currentSort == SortOption.categoryAlphabetical
+                          ? AppColors.primaryBlue
+                          : AppColors.textSecondary,
+                    ),
+                    const SizedBox(width: 12),
+                    Text(
+                      'Por Categoria',
+                      style: TextStyle(
+                        fontWeight: _currentSort == SortOption.categoryAlphabetical
+                            ? FontWeight.bold
+                            : FontWeight.normal,
+                        color: _currentSort == SortOption.categoryAlphabetical
+                            ? AppColors.primaryBlue
+                            : AppColors.textPrimary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
           IconButton(
             icon: Icon(
               completedCount == totalItems ? Icons.check_circle : Icons.shopping_cart_outlined,
-              color: completedCount == totalItems ? Colors.green : Colors.white,
+              color: completedCount == totalItems ? Colors.greenAccent : Colors.white,
             ),
             onPressed: () async {
               final option = await showModalBottomSheet<String>(
@@ -300,15 +402,19 @@ class _ShoppingPageState extends State<ShoppingPage> {
         children: [
           Column(
             children: [
-              // Header com progresso
+              // Header com progresso (compacto)
               Container(
                 width: double.infinity,
-                padding: const EdgeInsets.all(24),
+                padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [Colors.white, Colors.grey[50]!],
+                  ),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
+                      color: Colors.black.withOpacity(0.06),
                       blurRadius: 8,
                       offset: const Offset(0, 2),
                     ),
@@ -320,44 +426,147 @@ class _ShoppingPageState extends State<ShoppingPage> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(
-                          'Progresso da compra',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.grey[800],
-                          ),
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                gradient: AppColors.primaryGradient,
+                                borderRadius: BorderRadius.circular(10),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: AppColors.primaryBlue.withOpacity(0.3),
+                                    blurRadius: 8,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
+                              ),
+                              child: const Icon(
+                                Icons.shopping_cart_rounded,
+                                color: Colors.white,
+                                size: 18,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Text(
+                              'Progresso da compra',
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.grey[800],
+                                letterSpacing: -0.5,
+                              ),
+                            ),
+                          ],
                         ),
-                        Text(
-                          '${(progress * 100).toInt()}%',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.lightBlue[700],
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          decoration: BoxDecoration(
+                            gradient: completedCount == totalItems
+                                ? LinearGradient(colors: [Colors.green[400]!, Colors.green[600]!])
+                                : AppColors.primaryGradient,
+                            borderRadius: BorderRadius.circular(20),
+                            boxShadow: [
+                              BoxShadow(
+                                color:
+                                    (completedCount == totalItems
+                                            ? Colors.green
+                                            : AppColors.primaryBlue)
+                                        .withOpacity(0.3),
+                                blurRadius: 8,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: Text(
+                            '${(progress * 100).toInt()}%',
+                            style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                              letterSpacing: 0.5,
+                            ),
                           ),
                         ),
                       ],
                     ),
                     const SizedBox(height: 12),
-                    LinearProgressIndicator(
-                      value: progress,
-                      backgroundColor: Colors.grey[200],
-                      valueColor: AlwaysStoppedAnimation<Color>(
-                        completedCount == totalItems ? Colors.green : Colors.lightBlue[700]!,
-                      ),
-                      minHeight: 8,
-                    ),
-                    const SizedBox(height: 8),
-                    if (completedCount == totalItems)
-                      Row(
-                        children: [
-                          Icon(Icons.check_circle, color: Colors.green, size: 16),
-                          const SizedBox(width: 8),
-                          Text(
-                            'Compra finalizada!',
-                            style: TextStyle(color: Colors.green, fontWeight: FontWeight.w600),
+                    Stack(
+                      children: [
+                        Container(
+                          height: 6,
+                          decoration: BoxDecoration(
+                            color: Colors.grey[200],
+                            borderRadius: BorderRadius.circular(10),
                           ),
-                        ],
+                        ),
+                        FractionallySizedBox(
+                          widthFactor: progress,
+                          child: Container(
+                            height: 6,
+                            decoration: BoxDecoration(
+                              gradient: completedCount == totalItems
+                                  ? LinearGradient(colors: [Colors.green[400]!, Colors.green[600]!])
+                                  : AppColors.primaryGradient,
+                              borderRadius: BorderRadius.circular(10),
+                              boxShadow: [
+                                BoxShadow(
+                                  color:
+                                      (completedCount == totalItems
+                                              ? Colors.green
+                                              : AppColors.primaryBlue)
+                                          .withOpacity(0.4),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    if (completedCount == totalItems)
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(colors: [Colors.green[50]!, Colors.green[100]!]),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: Colors.green[200]!, width: 1.5),
+                        ),
+                        child: Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(5),
+                              decoration: BoxDecoration(
+                                color: Colors.green[600],
+                                shape: BoxShape.circle,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.green.withOpacity(0.3),
+                                    blurRadius: 8,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
+                              ),
+                              child: const Icon(
+                                Icons.check_circle_rounded,
+                                color: Colors.white,
+                                size: 16,
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            Text(
+                              'Compra finalizada com sucesso!',
+                              style: TextStyle(
+                                color: Colors.green[800],
+                                fontWeight: FontWeight.w700,
+                                fontSize: 13,
+                                letterSpacing: -0.3,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                   ],
                 ),
@@ -368,38 +577,74 @@ class _ShoppingPageState extends State<ShoppingPage> {
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(Icons.shopping_basket_outlined, size: 80, color: Colors.grey[400]),
-                            const SizedBox(height: 16),
+                            Container(
+                              padding: const EdgeInsets.all(32),
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                  colors: [Colors.grey[100]!, Colors.grey[200]!],
+                                ),
+                                shape: BoxShape.circle,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.1),
+                                    blurRadius: 20,
+                                    offset: const Offset(0, 8),
+                                  ),
+                                ],
+                              ),
+                              child: Icon(
+                                Icons.shopping_basket_rounded,
+                                size: 64,
+                                color: Colors.grey[400],
+                              ),
+                            ),
+                            const SizedBox(height: 24),
                             Text(
                               'Nenhum item nesta compra',
                               style: TextStyle(
                                 fontSize: 18,
-                                color: Colors.grey[600],
-                                fontWeight: FontWeight.w500,
+                                color: Colors.grey[700],
+                                fontWeight: FontWeight.w600,
+                                letterSpacing: -0.5,
                               ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              'Adicione itens para começar',
+                              style: TextStyle(fontSize: 14, color: Colors.grey[500]),
                             ),
                           ],
                         ),
                       )
                     : Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                         child: ListView.builder(
                           itemCount: items.length,
                           itemBuilder: (context, index) {
                             final MarketItem item = items[index];
                             final isChecked = _isAdded[item.id] ?? false;
                             return Container(
-                              margin: const EdgeInsets.only(bottom: 12),
+                              margin: const EdgeInsets.only(bottom: 10),
                               decoration: BoxDecoration(
-                                color: Colors.white,
+                                gradient: LinearGradient(
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                  colors: isChecked
+                                      ? [Colors.green[50]!, Colors.green[100]!.withOpacity(0.3)]
+                                      : [Colors.white, Colors.grey[50]!],
+                                ),
                                 borderRadius: BorderRadius.circular(12),
                                 border: Border.all(
                                   color: isChecked ? Colors.green[300]! : Colors.grey[200]!,
-                                  width: isChecked ? 2 : 1,
+                                  width: isChecked ? 1.5 : 1,
                                 ),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: Colors.black.withOpacity(0.05),
+                                    color: isChecked
+                                        ? Colors.green.withOpacity(0.12)
+                                        : Colors.black.withOpacity(0.06),
                                     blurRadius: 8,
                                     offset: const Offset(0, 2),
                                   ),
@@ -427,7 +672,7 @@ class _ShoppingPageState extends State<ShoppingPage> {
                                     ).updatePurchase(updatedPurchase);
                                   },
                                   child: Padding(
-                                    padding: const EdgeInsets.all(16),
+                                    padding: const EdgeInsets.all(12),
                                     child: Row(
                                       children: [
                                         Container(
@@ -436,40 +681,75 @@ class _ShoppingPageState extends State<ShoppingPage> {
                                           decoration: BoxDecoration(
                                             shape: BoxShape.circle,
                                             border: Border.all(
-                                              color: isChecked ? Colors.green : Colors.grey[400]!,
+                                              color: isChecked
+                                                  ? Colors.green[600]!
+                                                  : Colors.grey[400]!,
                                               width: 2,
                                             ),
-                                            color: isChecked ? Colors.green : Colors.transparent,
+                                            gradient: isChecked
+                                                ? LinearGradient(
+                                                    colors: [
+                                                      Colors.green[500]!,
+                                                      Colors.green[600]!,
+                                                    ],
+                                                  )
+                                                : null,
+                                            color: isChecked ? null : Colors.transparent,
+                                            boxShadow: isChecked
+                                                ? [
+                                                    BoxShadow(
+                                                      color: Colors.green.withOpacity(0.4),
+                                                      blurRadius: 8,
+                                                      offset: const Offset(0, 2),
+                                                    ),
+                                                  ]
+                                                : null,
                                           ),
                                           child: isChecked
                                               ? const Icon(
-                                                  Icons.check,
+                                                  Icons.check_rounded,
                                                   size: 16,
                                                   color: Colors.white,
                                                 )
                                               : null,
                                         ),
-                                        const SizedBox(width: 16),
+                                        const SizedBox(width: 12),
                                         Container(
-                                          width: 48,
-                                          height: 48,
+                                          width: 44,
+                                          height: 44,
                                           decoration: BoxDecoration(
-                                            color: isChecked
-                                                ? Colors.green[100]
-                                                : Colors.lightBlue[100],
-                                            borderRadius: BorderRadius.circular(8),
+                                            gradient: isChecked
+                                                ? LinearGradient(
+                                                    begin: Alignment.topLeft,
+                                                    end: Alignment.bottomRight,
+                                                    colors: [
+                                                      Colors.green[300]!,
+                                                      Colors.green[500]!,
+                                                    ],
+                                                  )
+                                                : AppColors.primaryGradient,
+                                            borderRadius: BorderRadius.circular(10),
+                                            boxShadow: [
+                                              BoxShadow(
+                                                color:
+                                                    (isChecked
+                                                            ? Colors.green
+                                                            : AppColors.primaryBlue)
+                                                        .withOpacity(0.3),
+                                                blurRadius: 6,
+                                                offset: const Offset(0, 2),
+                                              ),
+                                            ],
                                           ),
                                           child: Icon(
                                             isChecked
-                                                ? Icons.check_box
-                                                : Icons.inventory_2_outlined,
-                                            color: isChecked
-                                                ? Colors.green[700]
-                                                : Colors.lightBlue[700],
-                                            size: 24,
+                                                ? Icons.check_circle_rounded
+                                                : Icons.shopping_bag_rounded,
+                                            color: Colors.white,
+                                            size: 22,
                                           ),
                                         ),
-                                        const SizedBox(width: 16),
+                                        const SizedBox(width: 12),
                                         Expanded(
                                           child: Column(
                                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -477,23 +757,64 @@ class _ShoppingPageState extends State<ShoppingPage> {
                                               Text(
                                                 item.name,
                                                 style: TextStyle(
-                                                  fontSize: 16,
-                                                  fontWeight: FontWeight.w600,
-                                                  color: Colors.black87,
+                                                  fontSize: 18,
+                                                  fontWeight: FontWeight.w800,
+                                                  color: AppColors.textPrimary,
                                                   decoration: isChecked
                                                       ? TextDecoration.lineThrough
                                                       : null,
+                                                  decorationColor: Colors.grey[500],
+                                                  decorationThickness: 2,
+                                                  letterSpacing: -0.3,
                                                 ),
                                               ),
                                               const SizedBox(height: 4),
-                                              Text(
-                                                item.category ?? '',
-                                                style: TextStyle(
-                                                  fontSize: 14,
-                                                  color: Colors.grey[600],
-                                                ),
+                                              Row(
+                                                children: [
+                                                  Container(
+                                                    padding: const EdgeInsets.symmetric(
+                                                      horizontal: 6,
+                                                      vertical: 2,
+                                                    ),
+                                                    decoration: BoxDecoration(
+                                                      color: AppColors.getCategoryColorLight(
+                                                        item.category,
+                                                      ),
+                                                      borderRadius: BorderRadius.circular(6),
+                                                      border: Border.all(
+                                                        color: AppColors.getCategoryColor(
+                                                          item.category,
+                                                        ).withOpacity(0.4),
+                                                        width: 1.5,
+                                                      ),
+                                                    ),
+                                                    child: Row(
+                                                      mainAxisSize: MainAxisSize.min,
+                                                      children: [
+                                                        Icon(
+                                                          Icons.category_rounded,
+                                                          size: 10,
+                                                          color: AppColors.getCategoryColor(
+                                                            item.category,
+                                                          ).withOpacity(0.85),
+                                                        ),
+                                                        const SizedBox(width: 3),
+                                                        Text(
+                                                          item.category ?? 'Sem categoria',
+                                                          style: TextStyle(
+                                                            fontSize: 10,
+                                                            color: AppColors.getCategoryColor(
+                                                              item.category,
+                                                            ).withOpacity(0.85),
+                                                            fontWeight: FontWeight.w700,
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                ],
                                               ),
-                                              const SizedBox(height: 8),
+                                              const SizedBox(height: 6),
                                               Row(
                                                 children: [
                                                   Container(
@@ -502,29 +823,96 @@ class _ShoppingPageState extends State<ShoppingPage> {
                                                       vertical: 4,
                                                     ),
                                                     decoration: BoxDecoration(
-                                                      color: Colors.grey[100],
-                                                      borderRadius: BorderRadius.circular(12),
-                                                    ),
-                                                    child: Text(
-                                                      'Qtd: ${item.quantity}',
-                                                      style: TextStyle(
-                                                        fontSize: 12,
-                                                        color: Colors.grey[700],
-                                                        fontWeight: FontWeight.w500,
+                                                      gradient: LinearGradient(
+                                                        colors: [
+                                                          Colors.orange[100]!,
+                                                          Colors.orange[200]!,
+                                                        ],
                                                       ),
+                                                      borderRadius: BorderRadius.circular(8),
+                                                      boxShadow: [
+                                                        BoxShadow(
+                                                          color: Colors.orange.withOpacity(0.2),
+                                                          blurRadius: 4,
+                                                          offset: const Offset(0, 2),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                    child: Row(
+                                                      mainAxisSize: MainAxisSize.min,
+                                                      children: [
+                                                        Icon(
+                                                          Icons.inventory_2_rounded,
+                                                          size: 12,
+                                                          color: Colors.orange[800],
+                                                        ),
+                                                        const SizedBox(width: 4),
+                                                        Text(
+                                                          'Qtd: ${item.quantity}',
+                                                          style: TextStyle(
+                                                            fontSize: 11,
+                                                            color: Colors.orange[800],
+                                                            fontWeight: FontWeight.w700,
+                                                          ),
+                                                        ),
+                                                      ],
                                                     ),
                                                   ),
                                                   const SizedBox(width: 8),
-                                                  Text(
-                                                    PriceHelper.centavosToFormattedString(
-                                                      item.priceCentavos ?? 0,
+                                                  Container(
+                                                    padding: const EdgeInsets.symmetric(
+                                                      horizontal: 8,
+                                                      vertical: 4,
                                                     ),
-                                                    style: TextStyle(
-                                                      fontSize: 16,
-                                                      color: isChecked
-                                                          ? Colors.green[700]
-                                                          : Colors.lightBlue[700],
-                                                      fontWeight: FontWeight.w600,
+                                                    decoration: BoxDecoration(
+                                                      gradient: LinearGradient(
+                                                        colors: isChecked
+                                                            ? [
+                                                                Colors.green[100]!,
+                                                                Colors.green[200]!,
+                                                              ]
+                                                            : [
+                                                                Colors.lightBlue[100]!,
+                                                                Colors.lightBlue[200]!,
+                                                              ],
+                                                      ),
+                                                      borderRadius: BorderRadius.circular(8),
+                                                      boxShadow: [
+                                                        BoxShadow(
+                                                          color:
+                                                              (isChecked
+                                                                      ? Colors.green
+                                                                      : Colors.lightBlue)
+                                                                  .withOpacity(0.2),
+                                                          blurRadius: 4,
+                                                          offset: const Offset(0, 2),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                    child: Row(
+                                                      mainAxisSize: MainAxisSize.min,
+                                                      children: [
+                                                        Icon(
+                                                          Icons.attach_money_rounded,
+                                                          size: 14,
+                                                          color: isChecked
+                                                              ? Colors.green[800]
+                                                              : Colors.lightBlue[800],
+                                                        ),
+                                                        Text(
+                                                          PriceHelper.centavosToFormattedString(
+                                                            item.priceCentavos ?? 0,
+                                                          ),
+                                                          style: TextStyle(
+                                                            fontSize: 11,
+                                                            color: isChecked
+                                                                ? Colors.green[800]
+                                                                : Colors.lightBlue[800],
+                                                            fontWeight: FontWeight.w700,
+                                                            letterSpacing: -0.5,
+                                                          ),
+                                                        ),
+                                                      ],
                                                     ),
                                                   ),
                                                 ],
@@ -535,15 +923,24 @@ class _ShoppingPageState extends State<ShoppingPage> {
 
                                         PopupMenuButton<String>(
                                           icon: Container(
-                                            padding: const EdgeInsets.all(6),
+                                            padding: const EdgeInsets.all(8),
                                             decoration: BoxDecoration(
-                                              color: Colors.grey[100],
-                                              borderRadius: BorderRadius.circular(6),
+                                              gradient: LinearGradient(
+                                                colors: [Colors.grey[100]!, Colors.grey[200]!],
+                                              ),
+                                              borderRadius: BorderRadius.circular(10),
+                                              boxShadow: [
+                                                BoxShadow(
+                                                  color: Colors.black.withOpacity(0.1),
+                                                  blurRadius: 4,
+                                                  offset: const Offset(0, 2),
+                                                ),
+                                              ],
                                             ),
                                             child: Icon(
                                               Icons.more_vert_rounded,
-                                              size: 18,
-                                              color: Colors.grey[600],
+                                              size: 20,
+                                              color: Colors.grey[700],
                                             ),
                                           ),
                                           shape: RoundedRectangleBorder(
@@ -830,61 +1227,170 @@ class _ShoppingPageState extends State<ShoppingPage> {
                         ),
                       ),
               ),
-              // Footer com total
+              // Footer com total (compacto)
               Container(
-                padding: const EdgeInsets.all(24),
+                padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [Colors.white, Colors.grey[50]!],
+                  ),
                   boxShadow: [
                     BoxShadow(
                       color: Colors.black.withOpacity(0.1),
-                      blurRadius: 8,
+                      blurRadius: 12,
                       offset: const Offset(0, -2),
                     ),
                   ],
+                  border: Border(top: BorderSide(color: Colors.grey[200]!, width: 1)),
                 ),
                 child: Column(
                   children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text(
-                          'Total da compra:',
-                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: completedCount == totalItems
+                              ? [Colors.green[50]!, Colors.green[100]!]
+                              : [AppColors.backgroundBlue, Colors.blue[50]!],
                         ),
-                        Text(
-                          PriceHelper.centavosToFormattedString(
-                            (_calculateTotal(items) * 100).round(),
-                          ),
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            color: completedCount == totalItems
-                                ? Colors.green
-                                : Colors.lightBlue[700],
-                          ),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: completedCount == totalItems
+                              ? Colors.green[200]!
+                              : AppColors.primaryBlueLight.withOpacity(0.3),
+                          width: 1.5,
                         ),
-                      ],
+                        boxShadow: [
+                          BoxShadow(
+                            color:
+                                (completedCount == totalItems
+                                        ? Colors.green
+                                        : AppColors.primaryBlue)
+                                    .withOpacity(0.15),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  gradient: completedCount == totalItems
+                                      ? LinearGradient(
+                                          colors: [Colors.green[400]!, Colors.green[600]!],
+                                        )
+                                      : AppColors.primaryGradient,
+                                  borderRadius: BorderRadius.circular(10),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color:
+                                          (completedCount == totalItems
+                                                  ? Colors.green
+                                                  : AppColors.primaryBlue)
+                                              .withOpacity(0.4),
+                                      blurRadius: 6,
+                                      offset: const Offset(0, 2),
+                                    ),
+                                  ],
+                                ),
+                                child: Icon(
+                                  completedCount == totalItems
+                                      ? Icons.check_circle_rounded
+                                      : Icons.shopping_cart_rounded,
+                                  color: Colors.white,
+                                  size: 20,
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Row(
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    'Total da compra: ',
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w500,
+                                      color: Colors.grey[600],
+                                      letterSpacing: -0.3,
+                                    ),
+                                  ),
+                                  Text(
+                                    PriceHelper.centavosToFormattedString(
+                                      (_calculateTotal(items) * 100).round(),
+                                    ),
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w700,
+                                      color: completedCount == totalItems
+                                          ? Colors.green[700]
+                                          : AppColors.primaryBlue,
+                                      letterSpacing: -0.3,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                          if (completedCount == totalItems)
+                            Container(
+                              padding: const EdgeInsets.all(6),
+                              decoration: BoxDecoration(
+                                color: Colors.green[600],
+                                shape: BoxShape.circle,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.green.withOpacity(0.4),
+                                    blurRadius: 6,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
+                              ),
+                              child: const Icon(
+                                Icons.celebration_rounded,
+                                color: Colors.white,
+                                size: 20,
+                              ),
+                            ),
+                        ],
+                      ),
                     ),
                     if (completedCount == totalItems) ...[
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 12),
                       Container(
                         width: double.infinity,
                         padding: const EdgeInsets.symmetric(vertical: 12),
                         decoration: BoxDecoration(
-                          color: Colors.green[100],
-                          borderRadius: BorderRadius.circular(8),
+                          gradient: LinearGradient(
+                            colors: [Colors.green[500]!, Colors.green[600]!],
+                          ),
+                          borderRadius: BorderRadius.circular(10),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.green.withOpacity(0.4),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
                         ),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(Icons.celebration, color: Colors.green[700]),
-                            const SizedBox(width: 8),
+                            const Icon(Icons.check_circle_rounded, color: Colors.white, size: 20),
+                            const SizedBox(width: 10),
                             Text(
-                              'Parabéns! Compra finalizada',
-                              style: TextStyle(
-                                color: Colors.green[700],
-                                fontWeight: FontWeight.w600,
+                              'Parabéns! Compra Finalizada',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w700,
+                                fontSize: 14,
+                                letterSpacing: -0.5,
                               ),
                             ),
                           ],

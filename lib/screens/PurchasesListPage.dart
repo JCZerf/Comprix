@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:market_express/screens/CreatePurchasePage.dart';
+import 'package:market_express/utils/app_colors.dart';
 import 'package:market_express/utils/price_helper.dart';
 import 'package:provider/provider.dart';
 
@@ -9,6 +10,88 @@ import 'Shopping_page.dart';
 
 class PurchasesListPage extends StatelessWidget {
   const PurchasesListPage({super.key});
+
+  void _showOptionsMenu(BuildContext context, Purchase purchase) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(20),
+              topRight: Radius.circular(20),
+            ),
+          ),
+          child: SafeArea(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const SizedBox(height: 12),
+                Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[300],
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                ListTile(
+                  leading: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: AppColors.backgroundBlue,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Icon(Icons.content_copy, color: AppColors.primaryBlue),
+                  ),
+                  title: const Text(
+                    'Usar como Base',
+                    style: TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                  subtitle: const Text('Criar nova compra baseada nesta lista'),
+                  onTap: () {
+                    Navigator.pop(context);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => CreatePurchasePage(basePurchase: purchase)),
+                    );
+                  },
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.red[50],
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Icon(Icons.delete_outline, color: Colors.red),
+                  ),
+                  title: const Text(
+                    'Excluir',
+                    style: TextStyle(fontWeight: FontWeight.w600, color: Colors.red),
+                  ),
+                  subtitle: const Text('Remover esta compra'),
+                  onTap: () {
+                    Navigator.pop(context);
+                    _confirmDelete(
+                      context,
+                      Provider.of<PurchaseController>(context, listen: false),
+                      purchase.id!,
+                    );
+                  },
+                ),
+                const SizedBox(height: 16),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
 
   void _confirmDelete(BuildContext context, PurchaseController controller, int id) {
     showDialog(
@@ -104,11 +187,17 @@ class PurchasesListPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Minhas Compras', style: TextStyle(fontWeight: FontWeight.w600)),
-        backgroundColor: Colors.lightBlue[700],
+        title: const Text(
+          'Minhas Compras',
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22),
+        ),
+        backgroundColor: AppColors.primaryBlue,
         elevation: 0,
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(gradient: AppColors.primaryGradient),
+        ),
       ),
-      backgroundColor: Colors.grey[50],
+      backgroundColor: AppColors.background,
       body: Stack(
         children: [
           Consumer<PurchaseController>(
@@ -118,20 +207,21 @@ class PurchasesListPage extends StatelessWidget {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.shopping_cart_outlined, size: 80, color: Colors.grey[400]),
-                      const SizedBox(height: 16),
-                      Text(
+                      Icon(Icons.shopping_bag_outlined, size: 100, color: AppColors.textLight),
+                      const SizedBox(height: 24),
+                      const Text(
                         'Nenhuma compra cadastrada',
                         style: TextStyle(
-                          fontSize: 18,
-                          color: Colors.grey[600],
-                          fontWeight: FontWeight.w500,
+                          fontSize: 20,
+                          color: AppColors.textPrimary,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
                       const SizedBox(height: 8),
-                      Text(
-                        'Toque no botão + para criar sua primeira compra',
-                        style: TextStyle(fontSize: 14, color: Colors.grey[500]),
+                      const Text(
+                        'Toque no botão abaixo para criar sua primeira compra',
+                        style: TextStyle(fontSize: 15, color: AppColors.textSecondary),
+                        textAlign: TextAlign.center,
                       ),
                     ],
                   ),
@@ -150,19 +240,20 @@ class PurchasesListPage extends StatelessWidget {
                       margin: const EdgeInsets.only(bottom: 12),
                       decoration: BoxDecoration(
                         color: Colors.white,
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: AppColors.divider.withOpacity(0.5)),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.05),
-                            blurRadius: 8,
-                            offset: const Offset(0, 2),
+                            color: AppColors.primaryBlue.withOpacity(0.08),
+                            blurRadius: 12,
+                            offset: const Offset(0, 4),
                           ),
                         ],
                       ),
                       child: Material(
                         color: Colors.transparent,
                         child: InkWell(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(16),
                           onTap: () {
                             Navigator.push(
                               context,
@@ -177,22 +268,35 @@ class PurchasesListPage extends StatelessWidget {
                                 Row(
                                   children: [
                                     Container(
-                                      width: 48,
-                                      height: 48,
+                                      width: 56,
+                                      height: 56,
                                       decoration: BoxDecoration(
-                                        color: completedCount == itemCount
-                                            ? Colors.green[100]
-                                            : Colors.lightBlue[100],
-                                        borderRadius: BorderRadius.circular(12),
+                                        gradient: completedCount == itemCount
+                                            ? const LinearGradient(
+                                                colors: [AppColors.success, Color(0xFF34D399)],
+                                                begin: Alignment.topLeft,
+                                                end: Alignment.bottomRight,
+                                              )
+                                            : AppColors.primaryGradient,
+                                        borderRadius: BorderRadius.circular(14),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color:
+                                                (completedCount == itemCount
+                                                        ? AppColors.success
+                                                        : AppColors.primaryBlue)
+                                                    .withOpacity(0.3),
+                                            blurRadius: 8,
+                                            offset: const Offset(0, 2),
+                                          ),
+                                        ],
                                       ),
                                       child: Icon(
                                         completedCount == itemCount
-                                            ? Icons.check_circle_outline
-                                            : Icons.shopping_cart_outlined,
-                                        color: completedCount == itemCount
-                                            ? Colors.green[700]
-                                            : Colors.lightBlue[700],
-                                        size: 24,
+                                            ? Icons.check_circle_rounded
+                                            : Icons.shopping_bag_rounded,
+                                        color: Colors.white,
+                                        size: 28,
                                       ),
                                     ),
                                     const SizedBox(width: 16),
@@ -203,15 +307,29 @@ class PurchasesListPage extends StatelessWidget {
                                           Text(
                                             purchase.name,
                                             style: const TextStyle(
-                                              fontSize: 16,
-                                              fontWeight: FontWeight.w600,
-                                              color: Colors.black87,
+                                              fontSize: 17,
+                                              fontWeight: FontWeight.bold,
+                                              color: AppColors.textPrimary,
+                                              letterSpacing: -0.5,
                                             ),
                                           ),
                                           const SizedBox(height: 4),
-                                          Text(
-                                            '${purchase.date.day}/${purchase.date.month}/${purchase.date.year}',
-                                            style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                                          Row(
+                                            children: [
+                                              Icon(
+                                                Icons.calendar_today,
+                                                size: 14,
+                                                color: AppColors.textSecondary,
+                                              ),
+                                              const SizedBox(width: 4),
+                                              Text(
+                                                '${purchase.date.day}/${purchase.date.month}/${purchase.date.year}',
+                                                style: const TextStyle(
+                                                  fontSize: 14,
+                                                  color: AppColors.textSecondary,
+                                                ),
+                                              ),
+                                            ],
                                           ),
                                         ],
                                       ),
@@ -223,27 +341,21 @@ class PurchasesListPage extends StatelessWidget {
                                           PriceHelper.centavosToFormattedString(
                                             (purchase.totalValue * 100).round(),
                                           ),
-                                          style: TextStyle(
-                                            fontSize: 16,
-                                            color: Colors.lightBlue[700],
-                                            fontWeight: FontWeight.w600,
+                                          style: const TextStyle(
+                                            fontSize: 17,
+                                            color: AppColors.primaryBlue,
+                                            fontWeight: FontWeight.bold,
                                           ),
                                         ),
-                                        const SizedBox(height: 4),
+                                        const SizedBox(height: 8),
                                         IconButton(
                                           icon: const Icon(
-                                            Icons.delete_outline,
-                                            color: Colors.redAccent,
-                                            size: 22,
+                                            Icons.more_vert,
+                                            color: AppColors.textSecondary,
+                                            size: 24,
                                           ),
-                                          tooltip: 'Excluir compra',
-                                          onPressed: () =>
-                                              _confirmDelete(context, controller, purchase.id!),
-                                        ),
-                                        Icon(
-                                          Icons.arrow_forward_ios,
-                                          size: 16,
-                                          color: Colors.grey[400],
+                                          tooltip: 'Mais opções',
+                                          onPressed: () => _showOptionsMenu(context, purchase),
                                         ),
                                       ],
                                     ),
@@ -254,46 +366,76 @@ class PurchasesListPage extends StatelessWidget {
                                   children: [
                                     Container(
                                       padding: const EdgeInsets.symmetric(
-                                        horizontal: 8,
-                                        vertical: 4,
+                                        horizontal: 10,
+                                        vertical: 6,
                                       ),
                                       decoration: BoxDecoration(
-                                        color: Colors.grey[100],
-                                        borderRadius: BorderRadius.circular(12),
+                                        color: AppColors.backgroundBlue,
+                                        borderRadius: BorderRadius.circular(8),
+                                        border: Border.all(color: AppColors.divider),
                                       ),
-                                      child: Text(
-                                        '$itemCount ${itemCount == 1 ? 'item' : 'itens'}',
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          color: Colors.grey[700],
-                                          fontWeight: FontWeight.w500,
-                                        ),
+                                      child: Row(
+                                        children: [
+                                          const Icon(
+                                            Icons.shopping_cart_outlined,
+                                            size: 14,
+                                            color: AppColors.primaryBlue,
+                                          ),
+                                          const SizedBox(width: 4),
+                                          Text(
+                                            '$itemCount ${itemCount == 1 ? 'item' : 'itens'}',
+                                            style: const TextStyle(
+                                              fontSize: 13,
+                                              color: AppColors.textPrimary,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                        ],
                                       ),
                                     ),
                                     const SizedBox(width: 8),
                                     if (completedCount > 0) ...[
                                       Container(
                                         padding: const EdgeInsets.symmetric(
-                                          horizontal: 8,
-                                          vertical: 4,
+                                          horizontal: 10,
+                                          vertical: 6,
                                         ),
                                         decoration: BoxDecoration(
                                           color: completedCount == itemCount
-                                              ? Colors.green[100]
-                                              : Colors.orange[100],
-                                          borderRadius: BorderRadius.circular(12),
-                                        ),
-                                        child: Text(
-                                          completedCount == itemCount
-                                              ? 'Completa'
-                                              : '$completedCount/$itemCount comprados',
-                                          style: TextStyle(
-                                            fontSize: 12,
+                                              ? AppColors.success.withOpacity(0.1)
+                                              : AppColors.warning.withOpacity(0.1),
+                                          borderRadius: BorderRadius.circular(8),
+                                          border: Border.all(
                                             color: completedCount == itemCount
-                                                ? Colors.green[700]
-                                                : Colors.orange[700],
-                                            fontWeight: FontWeight.w500,
+                                                ? AppColors.success
+                                                : AppColors.warning,
                                           ),
+                                        ),
+                                        child: Row(
+                                          children: [
+                                            Icon(
+                                              completedCount == itemCount
+                                                  ? Icons.check_circle
+                                                  : Icons.pending_outlined,
+                                              size: 14,
+                                              color: completedCount == itemCount
+                                                  ? AppColors.success
+                                                  : AppColors.warning,
+                                            ),
+                                            const SizedBox(width: 4),
+                                            Text(
+                                              completedCount == itemCount
+                                                  ? 'Completa'
+                                                  : '$completedCount/$itemCount comprados',
+                                              style: TextStyle(
+                                                fontSize: 13,
+                                                color: completedCount == itemCount
+                                                    ? AppColors.success
+                                                    : AppColors.warning,
+                                                fontWeight: FontWeight.w600,
+                                              ),
+                                            ),
+                                          ],
                                         ),
                                       ),
                                     ],
@@ -312,16 +454,28 @@ class PurchasesListPage extends StatelessWidget {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        backgroundColor: Colors.lightBlue[700],
-        elevation: 4,
-        onPressed: () {
-          Navigator.push(context, MaterialPageRoute(builder: (_) => const CreatePurchasePage()));
-        },
-        icon: const Icon(Icons.add, color: Colors.white),
-        label: const Text(
-          'Nova Compra',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+      floatingActionButton: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.primaryBlue.withOpacity(0.4),
+              blurRadius: 20,
+              offset: const Offset(0, 8),
+            ),
+          ],
+        ),
+        child: FloatingActionButton.extended(
+          backgroundColor: AppColors.primaryBlue,
+          elevation: 0,
+          onPressed: () {
+            Navigator.push(context, MaterialPageRoute(builder: (_) => const CreatePurchasePage()));
+          },
+          icon: const Icon(Icons.add_shopping_cart, color: Colors.white, size: 24),
+          label: const Text(
+            'Nova Compra',
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
+          ),
         ),
       ),
     );
