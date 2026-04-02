@@ -65,14 +65,14 @@ class PurchasesListPage extends StatelessWidget {
                   leading: Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: Colors.red[50],
+                      color: AppColors.backgroundBlue,
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: const Icon(Icons.delete_outline, color: Colors.red),
+                    child: const Icon(Icons.delete_outline, color: AppColors.textPrimary),
                   ),
                   title: const Text(
                     'Excluir',
-                    style: TextStyle(fontWeight: FontWeight.w600, color: Colors.red),
+                    style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary),
                   ),
                   subtitle: const Text('Remover esta compra'),
                   onTap: () {
@@ -134,7 +134,7 @@ class PurchasesListPage extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Colors.grey[50],
+                  color: Colors.white,
                   borderRadius: const BorderRadius.only(
                     bottomLeft: Radius.circular(16),
                     bottomRight: Radius.circular(16),
@@ -164,7 +164,7 @@ class PurchasesListPage extends StatelessWidget {
                           Navigator.of(ctx).pop();
                         },
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.red[600],
+                          backgroundColor: AppColors.textPrimary,
                           foregroundColor: Colors.white,
                           padding: const EdgeInsets.symmetric(vertical: 12),
                           elevation: 0,

@@ -113,7 +113,7 @@ class _ItemDetailPageState extends State<ItemDetailPage> with SingleTickerProvid
                         Navigator.pop(context); // Fecha o dialog
                         Navigator.pop(context); // Volta para a homepage
                       },
-                      child: const Text('Excluir', style: TextStyle(color: Colors.red)),
+                      child: const Text('Excluir', style: TextStyle(color: AppColors.textPrimary)),
                     ),
                   ],
                 ),

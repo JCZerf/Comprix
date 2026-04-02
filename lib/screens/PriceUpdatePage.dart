@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../controllers/ItemPriceController.dart';
 import '../models/ItemMarketModel.dart';
+import '../utils/app_colors.dart';
 import '../utils/price_helper.dart';
 // price_form_field removed: price is updated from ItemDetails now
 
@@ -37,10 +38,10 @@ class _PriceUpdatePageState extends State<PriceUpdatePage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Atualizar Preço', style: TextStyle(fontWeight: FontWeight.w600)),
-        backgroundColor: Colors.lightBlue[700],
+        backgroundColor: AppColors.primaryBlue,
         elevation: 0,
       ),
-      backgroundColor: Colors.grey[50],
+      backgroundColor: Colors.white,
       body: Stack(
         children: [
           Column(
@@ -74,12 +75,12 @@ class _PriceUpdatePageState extends State<PriceUpdatePage> {
                                 Container(
                                   padding: const EdgeInsets.all(12),
                                   decoration: BoxDecoration(
-                                    color: Colors.lightBlue.withOpacity(0.1),
+                                    color: AppColors.primaryBlue.withOpacity(0.1),
                                     borderRadius: BorderRadius.circular(12),
                                   ),
                                   child: Icon(
                                     Icons.inventory_2,
-                                    color: Colors.lightBlue[700],
+                                    color: AppColors.primaryBlue,
                                     size: 24,
                                   ),
                                 ),
@@ -115,7 +116,7 @@ class _PriceUpdatePageState extends State<PriceUpdatePage> {
                             Container(
                               padding: const EdgeInsets.all(16),
                               decoration: BoxDecoration(
-                                color: Colors.grey[50],
+                                color: Colors.white,
                                 borderRadius: BorderRadius.circular(12),
                                 border: Border.all(color: Colors.grey[200]!),
                               ),
@@ -223,7 +224,7 @@ class _PriceUpdatePageState extends State<PriceUpdatePage> {
                                   padding: const EdgeInsets.all(20),
                                   child: Row(
                                     children: [
-                                      Icon(Icons.history, color: Colors.lightBlue[700]),
+                                      Icon(Icons.history, color: AppColors.primaryBlue),
                                       const SizedBox(width: 12),
                                       const Text(
                                         'Histórico de preços',
@@ -255,7 +256,7 @@ class _PriceUpdatePageState extends State<PriceUpdatePage> {
                                             height: 8,
                                             decoration: BoxDecoration(
                                               color: index == 0
-                                                  ? Colors.lightBlue[700]
+                                                  ? AppColors.primaryBlue
                                                   : Colors.grey[400],
                                               shape: BoxShape.circle,
                                             ),
@@ -296,7 +297,7 @@ class _PriceUpdatePageState extends State<PriceUpdatePage> {
                                                 vertical: 4,
                                               ),
                                               decoration: BoxDecoration(
-                                                color: Colors.green.withOpacity(0.1),
+                                                color: AppColors.textPrimary.withOpacity(0.1),
                                                 borderRadius: BorderRadius.circular(12),
                                               ),
                                               child: Text(
@@ -304,7 +305,7 @@ class _PriceUpdatePageState extends State<PriceUpdatePage> {
                                                 style: TextStyle(
                                                   fontSize: 10,
                                                   fontWeight: FontWeight.w600,
-                                                  color: Colors.green[700],
+                                                  color: AppColors.textPrimary,
                                                 ),
                                               ),
                                             ),
@@ -343,7 +344,7 @@ class _PriceUpdatePageState extends State<PriceUpdatePage> {
                       Expanded(
                         child: ElevatedButton(
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.lightBlue[700],
+                            backgroundColor: AppColors.primaryBlue,
                             foregroundColor: Colors.white,
                             elevation: 2,
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),

@@ -50,7 +50,7 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-          'Market Express',
+          'Comprix',
           style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22),
         ),
         backgroundColor: AppColors.primaryBlue,
@@ -134,8 +134,10 @@ class _HomePageState extends State<HomePage> {
               ),
               // Lista de itens
               Expanded(
-                child: Consumer<MarketItemController>(
-                  builder: (context, controller, child) {
+                child: Container(
+                  color: AppColors.backgroundBlue,
+                  child: Consumer<MarketItemController>(
+                    builder: (context, controller, child) {
                     if (controller.items.isEmpty) {
                       String emptyMessage = controller.searchQuery.isNotEmpty
                           ? 'Nenhum item encontrado'
@@ -197,24 +199,20 @@ class _HomePageState extends State<HomePage> {
                             margin: const EdgeInsets.only(bottom: 12),
                             decoration: BoxDecoration(
                               color: Colors.white,
-                              borderRadius: BorderRadius.circular(16),
-                              border: Border.all(
-                                color: AppColors.divider.withOpacity(0.5),
-                              ),
+                              borderRadius: BorderRadius.circular(14),
+                              border: Border.all(color: AppColors.divider),
                               boxShadow: [
                                 BoxShadow(
-                                  color: AppColors.primaryBlue.withOpacity(
-                                    0.08,
-                                  ),
-                                  blurRadius: 12,
-                                  offset: const Offset(0, 4),
+                                  color: Colors.black.withOpacity(0.03),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 3),
                                 ),
                               ],
                             ),
                             child: Material(
                               color: Colors.transparent,
                               child: InkWell(
-                                borderRadius: BorderRadius.circular(16),
+                                borderRadius: BorderRadius.circular(14),
                                 onTap: () {
                                   Navigator.push(
                                     context,
@@ -225,35 +223,16 @@ class _HomePageState extends State<HomePage> {
                                   );
                                 },
                                 child: Padding(
-                                  padding: const EdgeInsets.all(16),
+                                  padding: const EdgeInsets.fromLTRB(
+                                    16,
+                                    14,
+                                    8,
+                                    14,
+                                  ),
                                   child: Row(
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
                                     children: [
-                                      Container(
-                                        width: 56,
-                                        height: 56,
-                                        decoration: BoxDecoration(
-                                          gradient: AppColors.primaryGradient,
-                                          borderRadius: BorderRadius.circular(
-                                            12,
-                                          ),
-                                          boxShadow: [
-                                            BoxShadow(
-                                              color: AppColors.primaryBlue
-                                                  .withOpacity(0.3),
-                                              blurRadius: 8,
-                                              offset: const Offset(0, 2),
-                                            ),
-                                          ],
-                                        ),
-                                        child: const Icon(
-                                          Icons.inventory_2_rounded,
-                                          color: Colors.white,
-                                          size: 28,
-                                        ),
-                                      ),
-                                      const SizedBox(width: 16),
                                       Expanded(
                                         child: Column(
                                           crossAxisAlignment:
@@ -286,76 +265,43 @@ class _HomePageState extends State<HomePage> {
                                                 overflow: TextOverflow.ellipsis,
                                               ),
                                             ],
-                                            const SizedBox(height: 6),
-                                            if (item.category != null &&
-                                                item.category!.isNotEmpty)
-                                              Container(
-                                                padding:
-                                                    const EdgeInsets.symmetric(
-                                                      horizontal: 8,
-                                                      vertical: 4,
-                                                    ),
-                                                decoration: BoxDecoration(
-                                                  color:
-                                                      AppColors.getCategoryColorLight(
-                                                        item.category,
-                                                      ),
-                                                  borderRadius:
-                                                      BorderRadius.circular(6),
-                                                  border: Border.all(
-                                                    color:
-                                                        AppColors.getCategoryColor(
-                                                          item.category,
-                                                        ).withOpacity(0.4),
-                                                    width: 1.5,
-                                                  ),
-                                                ),
-                                                child: Text(
-                                                  item.category!,
-                                                  style: TextStyle(
-                                                    fontSize: 12,
-                                                    color:
-                                                        AppColors.getCategoryColor(
-                                                          item.category,
-                                                        ).withOpacity(0.85),
-                                                    fontWeight: FontWeight.w700,
-                                                  ),
-                                                ),
-                                              ),
-                                            const SizedBox(height: 8),
-                                            Row(
+                                            const SizedBox(height: 10),
+                                            Wrap(
+                                              spacing: 8,
+                                              runSpacing: 8,
                                               children: [
                                                 Container(
                                                   padding:
                                                       const EdgeInsets.symmetric(
                                                         horizontal: 10,
-                                                        vertical: 5,
+                                                        vertical: 6,
                                                       ),
                                                   decoration: BoxDecoration(
-                                                    color: AppColors
-                                                        .backgroundBlue,
+                                                    color: Colors.white,
                                                     borderRadius:
                                                         BorderRadius.circular(
-                                                          8,
+                                                          999,
                                                         ),
                                                     border: Border.all(
                                                       color: AppColors.divider,
                                                     ),
                                                   ),
                                                   child: Row(
+                                                    mainAxisSize:
+                                                        MainAxisSize.min,
                                                     children: [
                                                       const Icon(
                                                         Icons
-                                                            .shopping_cart_outlined,
+                                                            .inventory_2_outlined,
                                                         size: 14,
                                                         color: AppColors
-                                                            .primaryBlue,
+                                                            .textSecondary,
                                                       ),
                                                       const SizedBox(width: 4),
                                                       Text(
-                                                        '${item.quantity}',
+                                                        'Qtd ${item.quantity}',
                                                         style: const TextStyle(
-                                                          fontSize: 13,
+                                                          fontSize: 12,
                                                           color: AppColors
                                                               .textPrimary,
                                                           fontWeight:
@@ -365,218 +311,310 @@ class _HomePageState extends State<HomePage> {
                                                     ],
                                                   ),
                                                 ),
-                                                const SizedBox(width: 8),
-                                                Text(
-                                                  PriceHelper.centavosToFormattedString(
-                                                    item.priceCentavos ?? 0,
+                                                if (item.category != null &&
+                                                    item.category!.isNotEmpty)
+                                                  Builder(
+                                                    builder: (context) {
+                                                      final categoryColor =
+                                                          AppColors
+                                                              .getCategoryColor(
+                                                                item.category,
+                                                              );
+                                                      return Container(
+                                                        padding:
+                                                            const EdgeInsets.symmetric(
+                                                              horizontal: 10,
+                                                              vertical: 6,
+                                                            ),
+                                                        decoration: BoxDecoration(
+                                                          color: AppColors
+                                                              .getCategoryColorLight(
+                                                                item.category,
+                                                              ),
+                                                          borderRadius:
+                                                              BorderRadius.circular(
+                                                                999,
+                                                              ),
+                                                          border: Border.all(
+                                                            color: categoryColor
+                                                                .withValues(
+                                                                  alpha: 0.35,
+                                                                ),
+                                                          ),
+                                                          boxShadow: [
+                                                            BoxShadow(
+                                                              color: categoryColor
+                                                                  .withValues(
+                                                                    alpha:
+                                                                        0.12,
+                                                                  ),
+                                                              blurRadius: 6,
+                                                              offset: const Offset(
+                                                                0,
+                                                                2,
+                                                              ),
+                                                            ),
+                                                          ],
+                                                        ),
+                                                        child: Row(
+                                                          mainAxisSize:
+                                                              MainAxisSize.min,
+                                                          children: [
+                                                            Icon(
+                                                              Icons
+                                                                  .sell_outlined,
+                                                              size: 12,
+                                                              color:
+                                                                  categoryColor,
+                                                            ),
+                                                            const SizedBox(
+                                                              width: 4,
+                                                            ),
+                                                            Text(
+                                                              item.category!,
+                                                              style: TextStyle(
+                                                                fontSize: 12,
+                                                                color:
+                                                                    categoryColor,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .w700,
+                                                              ),
+                                                            ),
+                                                          ],
+                                                        ),
+                                                      );
+                                                    },
                                                   ),
-                                                  style: TextStyle(
-                                                    fontSize: 16,
-                                                    color:
-                                                        Colors.lightBlue[700],
-                                                    fontWeight: FontWeight.w600,
-                                                  ),
-                                                ),
                                               ],
                                             ),
                                           ],
                                         ),
                                       ),
-                                      IconButton(
-                                        icon: const Icon(Icons.delete_outline),
-                                        color: Colors.red[400],
-                                        onPressed: () {
-                                          showDialog(
-                                            context: context,
-                                            barrierDismissible: false,
-                                            builder: (context) => AlertDialog(
-                                              shape: RoundedRectangleBorder(
-                                                borderRadius:
-                                                    BorderRadius.circular(20),
-                                              ),
-                                              elevation: 8,
-                                              backgroundColor: Colors.white,
-                                              contentPadding: EdgeInsets.zero,
-                                              content: Container(
-                                                width: 320,
-                                                decoration: BoxDecoration(
-                                                  borderRadius:
-                                                      BorderRadius.circular(20),
-                                                ),
-                                                child: Column(
-                                                  mainAxisSize:
-                                                      MainAxisSize.min,
-                                                  children: [
-                                                    Padding(
-                                                      padding:
-                                                          const EdgeInsets.all(
-                                                            24,
-                                                          ),
-                                                      child: Column(
-                                                        children: [
-                                                          RichText(
-                                                            textAlign: TextAlign
-                                                                .center,
-                                                            text: TextSpan(
-                                                              style: TextStyle(
-                                                                fontSize: 16,
-                                                                color: Colors
-                                                                    .grey[700],
-                                                                height: 1.4,
-                                                              ),
-                                                              children: [
-                                                                const TextSpan(
-                                                                  text:
-                                                                      'Tem certeza que deseja excluir o item ',
-                                                                ),
-                                                                TextSpan(
-                                                                  text:
-                                                                      '"${item.name}"',
-                                                                  style: const TextStyle(
-                                                                    fontWeight:
-                                                                        FontWeight
-                                                                            .w600,
-                                                                    color: Colors
-                                                                        .black87,
-                                                                  ),
-                                                                ),
-                                                                const TextSpan(
-                                                                  text: '?',
-                                                                ),
-                                                              ],
-                                                            ),
-                                                          ),
-                                                          const SizedBox(
-                                                            height: 8,
-                                                          ),
-                                                          Text(
-                                                            'Esta ação não pode ser desfeita.',
-                                                            textAlign: TextAlign
-                                                                .center,
-                                                            style: TextStyle(
-                                                              fontSize: 14,
-                                                              color: Colors
-                                                                  .grey[500],
-                                                              fontStyle:
-                                                                  FontStyle
-                                                                      .italic,
-                                                            ),
-                                                          ),
-                                                        ],
-                                                      ),
-                                                    ),
-                                                    // Botões
-                                                    Container(
-                                                      padding:
-                                                          const EdgeInsets.all(
+                                      Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.end,
+                                        children: [
+                                          Text(
+                                            PriceHelper.centavosToFormattedString(
+                                              item.priceCentavos ?? 0,
+                                            ),
+                                            style: const TextStyle(
+                                              fontSize: 16,
+                                              color: AppColors.textPrimary,
+                                              fontWeight: FontWeight.w700,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 4),
+                                          IconButton(
+                                            icon: const Icon(
+                                              Icons.delete_outline,
+                                            ),
+                                            color: AppColors.textSecondary,
+                                            onPressed: () {
+                                              showDialog(
+                                                context: context,
+                                                barrierDismissible: false,
+                                                builder: (context) => AlertDialog(
+                                                  shape: RoundedRectangleBorder(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                          20,
+                                                        ),
+                                                  ),
+                                                  elevation: 8,
+                                                  backgroundColor: Colors.white,
+                                                  contentPadding:
+                                                      EdgeInsets.zero,
+                                                  content: Container(
+                                                    width: 320,
+                                                    decoration: BoxDecoration(
+                                                      borderRadius:
+                                                          BorderRadius.circular(
                                                             20,
                                                           ),
-                                                      decoration: BoxDecoration(
-                                                        color: Colors.grey[50],
-                                                        borderRadius:
-                                                            const BorderRadius.only(
-                                                              bottomLeft:
-                                                                  Radius.circular(
-                                                                    20,
-                                                                  ),
-                                                              bottomRight:
-                                                                  Radius.circular(
-                                                                    20,
-                                                                  ),
-                                                            ),
-                                                      ),
-                                                      child: Row(
-                                                        children: [
-                                                          Expanded(
-                                                            child: OutlinedButton(
-                                                              onPressed: () =>
-                                                                  Navigator.pop(
-                                                                    context,
-                                                                  ),
-                                                              style: OutlinedButton.styleFrom(
-                                                                padding:
-                                                                    const EdgeInsets.symmetric(
-                                                                      vertical:
-                                                                          14,
-                                                                    ),
-                                                                side: BorderSide(
-                                                                  color: Colors
-                                                                      .grey[300]!,
-                                                                ),
-                                                                shape: RoundedRectangleBorder(
-                                                                  borderRadius:
-                                                                      BorderRadius.circular(
-                                                                        12,
-                                                                      ),
-                                                                ),
-                                                              ),
-                                                              child: Text(
-                                                                'Cancelar',
-                                                                style: TextStyle(
-                                                                  color: Colors
-                                                                      .grey[600],
-                                                                  fontWeight:
-                                                                      FontWeight
-                                                                          .w600,
-                                                                  fontSize: 16,
-                                                                ),
-                                                              ),
-                                                            ),
-                                                          ),
-                                                          const SizedBox(
-                                                            width: 12,
-                                                          ),
-                                                          Expanded(
-                                                            child: ElevatedButton(
-                                                              onPressed: () {
-                                                                controller
-                                                                    .deleteItem(
-                                                                      item.id!,
-                                                                    );
-                                                                Navigator.pop(
-                                                                  context,
-                                                                );
-                                                              },
-                                                              style: ElevatedButton.styleFrom(
-                                                                backgroundColor:
-                                                                    Colors
-                                                                        .red[600],
-                                                                foregroundColor:
-                                                                    Colors
-                                                                        .white,
-                                                                padding:
-                                                                    const EdgeInsets.symmetric(
-                                                                      vertical:
-                                                                          14,
-                                                                    ),
-                                                                elevation: 0,
-                                                                shape: RoundedRectangleBorder(
-                                                                  borderRadius:
-                                                                      BorderRadius.circular(
-                                                                        12,
-                                                                      ),
-                                                                ),
-                                                              ),
-                                                              child: const Text(
-                                                                'Excluir',
-                                                                style: TextStyle(
-                                                                  fontWeight:
-                                                                      FontWeight
-                                                                          .w600,
-                                                                  fontSize: 16,
-                                                                ),
-                                                              ),
-                                                            ),
-                                                          ),
-                                                        ],
-                                                      ),
                                                     ),
-                                                  ],
+                                                    child: Column(
+                                                      mainAxisSize:
+                                                          MainAxisSize.min,
+                                                      children: [
+                                                        Padding(
+                                                          padding:
+                                                              const EdgeInsets.all(
+                                                                24,
+                                                              ),
+                                                          child: Column(
+                                                            children: [
+                                                              RichText(
+                                                                textAlign:
+                                                                    TextAlign
+                                                                        .center,
+                                                                text: TextSpan(
+                                                                  style: TextStyle(
+                                                                    fontSize:
+                                                                        16,
+                                                                    color: Colors
+                                                                        .grey[700],
+                                                                    height: 1.4,
+                                                                  ),
+                                                                  children: [
+                                                                    const TextSpan(
+                                                                      text:
+                                                                          'Tem certeza que deseja excluir o item ',
+                                                                    ),
+                                                                    TextSpan(
+                                                                      text:
+                                                                          '"${item.name}"',
+                                                                      style: const TextStyle(
+                                                                        fontWeight:
+                                                                            FontWeight.w600,
+                                                                        color: Colors
+                                                                            .black87,
+                                                                      ),
+                                                                    ),
+                                                                    const TextSpan(
+                                                                      text: '?',
+                                                                    ),
+                                                                  ],
+                                                                ),
+                                                              ),
+                                                              const SizedBox(
+                                                                height: 8,
+                                                              ),
+                                                              Text(
+                                                                'Esta ação não pode ser desfeita.',
+                                                                textAlign:
+                                                                    TextAlign
+                                                                        .center,
+                                                                style: TextStyle(
+                                                                  fontSize: 14,
+                                                                  color: Colors
+                                                                      .grey[500],
+                                                                  fontStyle:
+                                                                      FontStyle
+                                                                          .italic,
+                                                                ),
+                                                              ),
+                                                            ],
+                                                          ),
+                                                        ),
+                                                        // Botões
+                                                        Container(
+                                                          padding:
+                                                              const EdgeInsets.all(
+                                                                20,
+                                                              ),
+                                                          decoration: BoxDecoration(
+                                                            color: Colors.white,
+                                                            borderRadius:
+                                                                const BorderRadius.only(
+                                                                  bottomLeft:
+                                                                      Radius.circular(
+                                                                        20,
+                                                                      ),
+                                                                  bottomRight:
+                                                                      Radius.circular(
+                                                                        20,
+                                                                      ),
+                                                                ),
+                                                          ),
+                                                          child: Row(
+                                                            children: [
+                                                              Expanded(
+                                                                child: OutlinedButton(
+                                                                  onPressed: () =>
+                                                                      Navigator.pop(
+                                                                        context,
+                                                                      ),
+                                                                  style: OutlinedButton.styleFrom(
+                                                                    padding:
+                                                                        const EdgeInsets.symmetric(
+                                                                          vertical:
+                                                                              14,
+                                                                        ),
+                                                                    side: BorderSide(
+                                                                      color: Colors
+                                                                          .grey[300]!,
+                                                                    ),
+                                                                    shape: RoundedRectangleBorder(
+                                                                      borderRadius:
+                                                                          BorderRadius.circular(
+                                                                            12,
+                                                                          ),
+                                                                    ),
+                                                                  ),
+                                                                  child: Text(
+                                                                    'Cancelar',
+                                                                    style: TextStyle(
+                                                                      color: Colors
+                                                                          .grey[600],
+                                                                      fontWeight:
+                                                                          FontWeight
+                                                                              .w600,
+                                                                      fontSize:
+                                                                          16,
+                                                                    ),
+                                                                  ),
+                                                                ),
+                                                              ),
+                                                              const SizedBox(
+                                                                width: 12,
+                                                              ),
+                                                              Expanded(
+                                                                child: ElevatedButton(
+                                                                  onPressed: () {
+                                                                    controller
+                                                                        .deleteItem(
+                                                                          item.id!,
+                                                                        );
+                                                                    Navigator.pop(
+                                                                      context,
+                                                                    );
+                                                                  },
+                                                                  style: ElevatedButton.styleFrom(
+                                                                    backgroundColor:
+                                                                        Colors
+                                                                            .red[600],
+                                                                    foregroundColor:
+                                                                        Colors
+                                                                            .white,
+                                                                    padding:
+                                                                        const EdgeInsets.symmetric(
+                                                                          vertical:
+                                                                              14,
+                                                                        ),
+                                                                    elevation:
+                                                                        0,
+                                                                    shape: RoundedRectangleBorder(
+                                                                      borderRadius:
+                                                                          BorderRadius.circular(
+                                                                            12,
+                                                                          ),
+                                                                    ),
+                                                                  ),
+                                                                  child: const Text(
+                                                                    'Excluir',
+                                                                    style: TextStyle(
+                                                                      fontWeight:
+                                                                          FontWeight
+                                                                              .w600,
+                                                                      fontSize:
+                                                                          16,
+                                                                    ),
+                                                                  ),
+                                                                ),
+                                                              ),
+                                                            ],
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ),
                                                 ),
-                                              ),
-                                            ),
-                                          );
-                                        },
+                                              );
+                                            },
+                                          ),
+                                        ],
                                       ),
                                     ],
                                   ),
@@ -587,7 +625,8 @@ class _HomePageState extends State<HomePage> {
                         },
                       ),
                     );
-                  },
+                    },
+                  ),
                 ),
               ),
               const WatermarkWidget(),

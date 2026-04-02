@@ -189,7 +189,7 @@ class _ShoppingPageState extends State<ShoppingPage> {
           IconButton(
             icon: Icon(
               completedCount == totalItems ? Icons.check_circle : Icons.shopping_cart_outlined,
-              color: completedCount == totalItems ? Colors.greenAccent : Colors.white,
+              color: completedCount == totalItems ? AppColors.cardBackground : Colors.white,
             ),
             onPressed: () async {
               final option = await showModalBottomSheet<String>(
@@ -229,7 +229,7 @@ class _ShoppingPageState extends State<ShoppingPage> {
                       Container(
                         width: double.infinity,
                         decoration: BoxDecoration(
-                          color: Colors.lightBlue[50],
+                          color: AppColors.backgroundBlue,
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Material(
@@ -245,12 +245,12 @@ class _ShoppingPageState extends State<ShoppingPage> {
                                     width: 48,
                                     height: 48,
                                     decoration: BoxDecoration(
-                                      color: Colors.lightBlue[100],
+                                      color: AppColors.backgroundBlue,
                                       borderRadius: BorderRadius.circular(12),
                                     ),
                                     child: Icon(
                                       Icons.playlist_add,
-                                      color: Colors.lightBlue[700],
+                                      color: AppColors.primaryBlue,
                                       size: 24,
                                     ),
                                   ),
@@ -286,7 +286,7 @@ class _ShoppingPageState extends State<ShoppingPage> {
                       Container(
                         width: double.infinity,
                         decoration: BoxDecoration(
-                          color: Colors.green[50],
+                          color: AppColors.backgroundBlue,
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Material(
@@ -302,12 +302,12 @@ class _ShoppingPageState extends State<ShoppingPage> {
                                     width: 48,
                                     height: 48,
                                     decoration: BoxDecoration(
-                                      color: Colors.green[100],
+                                      color: AppColors.backgroundBlue,
                                       borderRadius: BorderRadius.circular(12),
                                     ),
                                     child: Icon(
                                       Icons.add_circle_outline,
-                                      color: Colors.green[700],
+                                      color: AppColors.textPrimary,
                                       size: 24,
                                     ),
                                   ),
@@ -419,7 +419,7 @@ class _ShoppingPageState extends State<ShoppingPage> {
           ),
         ],
       ),
-      backgroundColor: Colors.grey[50],
+      backgroundColor: Colors.white,
       body: Stack(
         children: [
           Column(
@@ -432,7 +432,7 @@ class _ShoppingPageState extends State<ShoppingPage> {
                   gradient: LinearGradient(
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
-                    colors: [Colors.white, Colors.grey[50]!],
+                    colors: [Colors.white, Colors.white],
                   ),
                   boxShadow: [
                     BoxShadow(
@@ -485,14 +485,14 @@ class _ShoppingPageState extends State<ShoppingPage> {
                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                           decoration: BoxDecoration(
                             gradient: completedCount == totalItems
-                                ? LinearGradient(colors: [Colors.green[400]!, Colors.green[600]!])
+                                ? LinearGradient(colors: [AppColors.textSecondary, AppColors.textPrimary])
                                 : AppColors.primaryGradient,
                             borderRadius: BorderRadius.circular(20),
                             boxShadow: [
                               BoxShadow(
                                 color:
                                     (completedCount == totalItems
-                                            ? Colors.green
+                                            ? AppColors.textPrimary
                                             : AppColors.primaryBlue)
                                         .withOpacity(0.3),
                                 blurRadius: 8,
@@ -528,14 +528,14 @@ class _ShoppingPageState extends State<ShoppingPage> {
                             height: 6,
                             decoration: BoxDecoration(
                               gradient: completedCount == totalItems
-                                  ? LinearGradient(colors: [Colors.green[400]!, Colors.green[600]!])
+                                  ? LinearGradient(colors: [AppColors.textSecondary, AppColors.textPrimary])
                                   : AppColors.primaryGradient,
                               borderRadius: BorderRadius.circular(10),
                               boxShadow: [
                                 BoxShadow(
                                   color:
                                       (completedCount == totalItems
-                                              ? Colors.green
+                                              ? AppColors.textPrimary
                                               : AppColors.primaryBlue)
                                           .withOpacity(0.4),
                                   blurRadius: 8,
@@ -552,20 +552,20 @@ class _ShoppingPageState extends State<ShoppingPage> {
                       Container(
                         padding: const EdgeInsets.all(10),
                         decoration: BoxDecoration(
-                          gradient: LinearGradient(colors: [Colors.green[50]!, Colors.green[100]!]),
+                          gradient: LinearGradient(colors: [AppColors.backgroundBlue, AppColors.backgroundBlue]),
                           borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.green[200]!, width: 1.5),
+                          border: Border.all(color: AppColors.divider, width: 1.5),
                         ),
                         child: Row(
                           children: [
                             Container(
                               padding: const EdgeInsets.all(5),
                               decoration: BoxDecoration(
-                                color: Colors.green[600],
+                                color: AppColors.textPrimary,
                                 shape: BoxShape.circle,
                                 boxShadow: [
                                   BoxShadow(
-                                    color: Colors.green.withOpacity(0.3),
+                                    color: AppColors.textPrimary.withOpacity(0.3),
                                     blurRadius: 8,
                                     offset: const Offset(0, 2),
                                   ),
@@ -581,7 +581,7 @@ class _ShoppingPageState extends State<ShoppingPage> {
                             Text(
                               'Compra finalizada com sucesso!',
                               style: TextStyle(
-                                color: Colors.green[800],
+                                color: AppColors.textPrimary,
                                 fontWeight: FontWeight.w700,
                                 fontSize: 13,
                                 letterSpacing: -0.3,
@@ -654,18 +654,18 @@ class _ShoppingPageState extends State<ShoppingPage> {
                                   begin: Alignment.topLeft,
                                   end: Alignment.bottomRight,
                                   colors: isChecked
-                                      ? [Colors.green[50]!, Colors.green[100]!.withOpacity(0.3)]
-                                      : [Colors.white, Colors.grey[50]!],
+                                      ? [AppColors.backgroundBlue, AppColors.backgroundBlue.withOpacity(0.3)]
+                                      : [Colors.white, Colors.white],
                                 ),
                                 borderRadius: BorderRadius.circular(12),
                                 border: Border.all(
-                                  color: isChecked ? Colors.green[300]! : Colors.grey[200]!,
+                                  color: isChecked ? AppColors.textSecondary : Colors.grey[200]!,
                                   width: isChecked ? 1.5 : 1,
                                 ),
                                 boxShadow: [
                                   BoxShadow(
                                     color: isChecked
-                                        ? Colors.green.withOpacity(0.12)
+                                        ? AppColors.textPrimary.withOpacity(0.12)
                                         : Colors.black.withOpacity(0.06),
                                     blurRadius: 8,
                                     offset: const Offset(0, 2),
@@ -704,15 +704,15 @@ class _ShoppingPageState extends State<ShoppingPage> {
                                             shape: BoxShape.circle,
                                             border: Border.all(
                                               color: isChecked
-                                                  ? Colors.green[600]!
+                                                  ? AppColors.textPrimary
                                                   : Colors.grey[400]!,
                                               width: 2,
                                             ),
                                             gradient: isChecked
                                                 ? LinearGradient(
                                                     colors: [
-                                                      Colors.green[500]!,
-                                                      Colors.green[600]!,
+                                                      AppColors.textSecondary,
+                                                      AppColors.textPrimary,
                                                     ],
                                                   )
                                                 : null,
@@ -720,7 +720,7 @@ class _ShoppingPageState extends State<ShoppingPage> {
                                             boxShadow: isChecked
                                                 ? [
                                                     BoxShadow(
-                                                      color: Colors.green.withOpacity(0.4),
+                                                      color: AppColors.textPrimary.withOpacity(0.4),
                                                       blurRadius: 8,
                                                       offset: const Offset(0, 2),
                                                     ),
@@ -734,42 +734,6 @@ class _ShoppingPageState extends State<ShoppingPage> {
                                                   color: Colors.white,
                                                 )
                                               : null,
-                                        ),
-                                        const SizedBox(width: 12),
-                                        Container(
-                                          width: 44,
-                                          height: 44,
-                                          decoration: BoxDecoration(
-                                            gradient: isChecked
-                                                ? LinearGradient(
-                                                    begin: Alignment.topLeft,
-                                                    end: Alignment.bottomRight,
-                                                    colors: [
-                                                      Colors.green[300]!,
-                                                      Colors.green[500]!,
-                                                    ],
-                                                  )
-                                                : AppColors.primaryGradient,
-                                            borderRadius: BorderRadius.circular(10),
-                                            boxShadow: [
-                                              BoxShadow(
-                                                color:
-                                                    (isChecked
-                                                            ? Colors.green
-                                                            : AppColors.primaryBlue)
-                                                        .withOpacity(0.3),
-                                                blurRadius: 6,
-                                                offset: const Offset(0, 2),
-                                              ),
-                                            ],
-                                          ),
-                                          child: Icon(
-                                            isChecked
-                                                ? Icons.check_circle_rounded
-                                                : Icons.shopping_bag_rounded,
-                                            color: Colors.white,
-                                            size: 22,
-                                          ),
                                         ),
                                         const SizedBox(width: 12),
                                         Expanded(
@@ -847,14 +811,14 @@ class _ShoppingPageState extends State<ShoppingPage> {
                                                     decoration: BoxDecoration(
                                                       gradient: LinearGradient(
                                                         colors: [
-                                                          Colors.orange[100]!,
-                                                          Colors.orange[200]!,
+                                                          AppColors.backgroundBlue,
+                                                          AppColors.backgroundBlue,
                                                         ],
                                                       ),
                                                       borderRadius: BorderRadius.circular(8),
                                                       boxShadow: [
                                                         BoxShadow(
-                                                          color: Colors.orange.withOpacity(0.2),
+                                                          color: AppColors.textSecondary.withOpacity(0.2),
                                                           blurRadius: 4,
                                                           offset: const Offset(0, 2),
                                                         ),
@@ -866,14 +830,14 @@ class _ShoppingPageState extends State<ShoppingPage> {
                                                         Icon(
                                                           Icons.inventory_2_rounded,
                                                           size: 12,
-                                                          color: Colors.orange[800],
+                                                          color: AppColors.textPrimary,
                                                         ),
                                                         const SizedBox(width: 4),
                                                         Text(
                                                           'Qtd: ${item.quantity}',
                                                           style: TextStyle(
                                                             fontSize: 11,
-                                                            color: Colors.orange[800],
+                                                            color: AppColors.textPrimary,
                                                             fontWeight: FontWeight.w700,
                                                           ),
                                                         ),
@@ -890,12 +854,12 @@ class _ShoppingPageState extends State<ShoppingPage> {
                                                       gradient: LinearGradient(
                                                         colors: isChecked
                                                             ? [
-                                                                Colors.green[100]!,
-                                                                Colors.green[200]!,
+                                                                AppColors.backgroundBlue,
+                                                                AppColors.divider,
                                                               ]
                                                             : [
-                                                                Colors.lightBlue[100]!,
-                                                                Colors.lightBlue[200]!,
+                                                                AppColors.backgroundBlue,
+                                                                AppColors.accentBlue,
                                                               ],
                                                       ),
                                                       borderRadius: BorderRadius.circular(8),
@@ -903,8 +867,8 @@ class _ShoppingPageState extends State<ShoppingPage> {
                                                         BoxShadow(
                                                           color:
                                                               (isChecked
-                                                                      ? Colors.green
-                                                                      : Colors.lightBlue)
+                                                                      ? AppColors.textPrimary
+                                                                      : AppColors.primaryBlue)
                                                                   .withOpacity(0.2),
                                                           blurRadius: 4,
                                                           offset: const Offset(0, 2),
@@ -918,8 +882,8 @@ class _ShoppingPageState extends State<ShoppingPage> {
                                                           Icons.attach_money_rounded,
                                                           size: 14,
                                                           color: isChecked
-                                                              ? Colors.green[800]
-                                                              : Colors.lightBlue[800],
+                                                              ? AppColors.textPrimary
+                                                              : AppColors.primaryBlueDark,
                                                         ),
                                                         Text(
                                                           PriceHelper.centavosToFormattedString(
@@ -928,8 +892,8 @@ class _ShoppingPageState extends State<ShoppingPage> {
                                                           style: TextStyle(
                                                             fontSize: 11,
                                                             color: isChecked
-                                                                ? Colors.green[800]
-                                                                : Colors.lightBlue[800],
+                                                                ? AppColors.textPrimary
+                                                                : AppColors.primaryBlueDark,
                                                             fontWeight: FontWeight.w700,
                                                             letterSpacing: -0.5,
                                                           ),
@@ -995,12 +959,12 @@ class _ShoppingPageState extends State<ShoppingPage> {
                                                       Container(
                                                         padding: const EdgeInsets.all(8),
                                                         decoration: BoxDecoration(
-                                                          color: Colors.red.withOpacity(0.1),
+                                                          color: AppColors.textPrimary.withOpacity(0.1),
                                                           borderRadius: BorderRadius.circular(8),
                                                         ),
                                                         child: Icon(
                                                           Icons.warning_amber_rounded,
-                                                          color: Colors.red[600],
+                                                          color: AppColors.textPrimary,
                                                           size: 24,
                                                         ),
                                                       ),
@@ -1032,7 +996,7 @@ class _ShoppingPageState extends State<ShoppingPage> {
                                                       Container(
                                                         padding: const EdgeInsets.all(12),
                                                         decoration: BoxDecoration(
-                                                          color: Colors.grey[50],
+                                                          color: Colors.white,
                                                           borderRadius: BorderRadius.circular(8),
                                                           border: Border.all(
                                                             color: Colors.grey[200]!,
@@ -1043,7 +1007,7 @@ class _ShoppingPageState extends State<ShoppingPage> {
                                                             Icon(
                                                               Icons.info_outline,
                                                               size: 16,
-                                                              color: Colors.blue[600],
+                                                              color: AppColors.primaryBlue,
                                                             ),
                                                             const SizedBox(width: 8),
                                                             Expanded(
@@ -1081,7 +1045,7 @@ class _ShoppingPageState extends State<ShoppingPage> {
                                                     ElevatedButton(
                                                       onPressed: () => Navigator.pop(context, true),
                                                       style: ElevatedButton.styleFrom(
-                                                        backgroundColor: Colors.red[600],
+                                                        backgroundColor: AppColors.textPrimary,
                                                         foregroundColor: Colors.white,
                                                         padding: const EdgeInsets.symmetric(
                                                           horizontal: 20,
@@ -1151,13 +1115,13 @@ class _ShoppingPageState extends State<ShoppingPage> {
                                                     Container(
                                                       padding: const EdgeInsets.all(6),
                                                       decoration: BoxDecoration(
-                                                        color: Colors.blue.withOpacity(0.1),
+                                                        color: AppColors.primaryBlue.withOpacity(0.1),
                                                         borderRadius: BorderRadius.circular(6),
                                                       ),
                                                       child: Icon(
                                                         Icons.edit_rounded,
                                                         size: 16,
-                                                        color: Colors.blue[600],
+                                                        color: AppColors.primaryBlue,
                                                       ),
                                                     ),
                                                     const SizedBox(width: 12),
@@ -1202,13 +1166,13 @@ class _ShoppingPageState extends State<ShoppingPage> {
                                                     Container(
                                                       padding: const EdgeInsets.all(6),
                                                       decoration: BoxDecoration(
-                                                        color: Colors.red.withOpacity(0.1),
+                                                        color: AppColors.textPrimary.withOpacity(0.1),
                                                         borderRadius: BorderRadius.circular(6),
                                                       ),
                                                       child: Icon(
                                                         Icons.remove_shopping_cart_outlined,
                                                         size: 16,
-                                                        color: Colors.red[600],
+                                                        color: AppColors.textPrimary,
                                                       ),
                                                     ),
                                                     const SizedBox(width: 12),
@@ -1221,14 +1185,14 @@ class _ShoppingPageState extends State<ShoppingPage> {
                                                           style: TextStyle(
                                                             fontSize: 15,
                                                             fontWeight: FontWeight.w600,
-                                                            color: Colors.red[700],
+                                                            color: AppColors.textPrimary,
                                                           ),
                                                         ),
                                                         Text(
                                                           'Excluir da lista de compras',
                                                           style: TextStyle(
                                                             fontSize: 12,
-                                                            color: Colors.red[500],
+                                                            color: AppColors.textSecondary,
                                                           ),
                                                         ),
                                                       ],
@@ -1256,7 +1220,7 @@ class _ShoppingPageState extends State<ShoppingPage> {
                   gradient: LinearGradient(
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
-                    colors: [Colors.white, Colors.grey[50]!],
+                    colors: [Colors.white, Colors.white],
                   ),
                   boxShadow: [
                     BoxShadow(
@@ -1274,13 +1238,13 @@ class _ShoppingPageState extends State<ShoppingPage> {
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
                           colors: completedCount == totalItems
-                              ? [Colors.green[50]!, Colors.green[100]!]
-                              : [AppColors.backgroundBlue, Colors.blue[50]!],
+                              ? [AppColors.backgroundBlue, AppColors.backgroundBlue]
+                              : [AppColors.backgroundBlue, AppColors.backgroundBlue],
                         ),
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
                           color: completedCount == totalItems
-                              ? Colors.green[200]!
+                              ? AppColors.divider
                               : AppColors.primaryBlueLight.withOpacity(0.3),
                           width: 1.5,
                         ),
@@ -1288,7 +1252,7 @@ class _ShoppingPageState extends State<ShoppingPage> {
                           BoxShadow(
                             color:
                                 (completedCount == totalItems
-                                        ? Colors.green
+                                        ? AppColors.textPrimary
                                         : AppColors.primaryBlue)
                                     .withOpacity(0.15),
                             blurRadius: 8,
@@ -1306,7 +1270,7 @@ class _ShoppingPageState extends State<ShoppingPage> {
                                 decoration: BoxDecoration(
                                   gradient: completedCount == totalItems
                                       ? LinearGradient(
-                                          colors: [Colors.green[400]!, Colors.green[600]!],
+                                          colors: [AppColors.textSecondary, AppColors.textPrimary],
                                         )
                                       : AppColors.primaryGradient,
                                   borderRadius: BorderRadius.circular(10),
@@ -1314,7 +1278,7 @@ class _ShoppingPageState extends State<ShoppingPage> {
                                     BoxShadow(
                                       color:
                                           (completedCount == totalItems
-                                                  ? Colors.green
+                                                  ? AppColors.textPrimary
                                                   : AppColors.primaryBlue)
                                               .withOpacity(0.4),
                                       blurRadius: 6,
@@ -1351,7 +1315,7 @@ class _ShoppingPageState extends State<ShoppingPage> {
                                       fontSize: 16,
                                       fontWeight: FontWeight.w700,
                                       color: completedCount == totalItems
-                                          ? Colors.green[700]
+                                          ? AppColors.textPrimary
                                           : AppColors.primaryBlue,
                                       letterSpacing: -0.3,
                                     ),
@@ -1364,11 +1328,11 @@ class _ShoppingPageState extends State<ShoppingPage> {
                             Container(
                               padding: const EdgeInsets.all(6),
                               decoration: BoxDecoration(
-                                color: Colors.green[600],
+                                color: AppColors.textPrimary,
                                 shape: BoxShape.circle,
                                 boxShadow: [
                                   BoxShadow(
-                                    color: Colors.green.withOpacity(0.4),
+                                    color: AppColors.textPrimary.withOpacity(0.4),
                                     blurRadius: 6,
                                     offset: const Offset(0, 2),
                                   ),
@@ -1390,12 +1354,12 @@ class _ShoppingPageState extends State<ShoppingPage> {
                         padding: const EdgeInsets.symmetric(vertical: 12),
                         decoration: BoxDecoration(
                           gradient: LinearGradient(
-                            colors: [Colors.green[500]!, Colors.green[600]!],
+                            colors: [AppColors.textSecondary, AppColors.textPrimary],
                           ),
                           borderRadius: BorderRadius.circular(10),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.green.withOpacity(0.4),
+                              color: AppColors.textPrimary.withOpacity(0.4),
                               blurRadius: 8,
                               offset: const Offset(0, 2),
                             ),

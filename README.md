@@ -1,6 +1,6 @@
-# 🛒 Market Express
+# 🛒 Comprix
 
-**Market Express** é um aplicativo móvel completo desenvolvido em Flutter para gerenciamento inteligente de listas de compras e controle de preços. O app oferece uma experiência moderna e intuitiva para organizar suas compras, acompanhar variações de preços e manter um histórico detalhado dos seus gastos.
+**Comprix** é um aplicativo móvel completo desenvolvido em Flutter para gerenciamento inteligente de listas de compras e controle de preços. O app oferece uma experiência moderna e intuitiva para organizar suas compras, acompanhar variações de preços e manter um histórico detalhado dos seus gastos.
 
 ## 📱 Capturas de Tela
 
@@ -264,4 +264,4 @@ Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para ma
 
 ---
 
-**Market Express** - *Simplificando suas compras, organizando sua vida* 🛒✨
+**Comprix** - *Simplificando suas compras, organizando sua vida* 🛒✨

@@ -67,7 +67,7 @@ class _CreatePurchasePageState extends State<CreatePurchasePage> {
                   gradient: LinearGradient(
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
-                    colors: [Colors.white, Colors.grey[50]!],
+                    colors: [Colors.white, Colors.white],
                   ),
                   boxShadow: [
                     BoxShadow(
@@ -87,12 +87,12 @@ class _CreatePurchasePageState extends State<CreatePurchasePage> {
                           height: 56,
                           decoration: BoxDecoration(
                             gradient: LinearGradient(
-                              colors: [Colors.lightBlue[400]!, Colors.lightBlue[600]!],
+                              colors: [AppColors.primaryBlueLight, AppColors.primaryBlue],
                             ),
                             borderRadius: BorderRadius.circular(14),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.lightBlue.withOpacity(0.3),
+                                color: AppColors.primaryBlue.withOpacity(0.3),
                                 blurRadius: 8,
                                 offset: const Offset(0, 4),
                               ),
@@ -155,7 +155,7 @@ class _CreatePurchasePageState extends State<CreatePurchasePage> {
                               hintStyle: TextStyle(color: Colors.grey[400]),
                               prefixIcon: Icon(
                                 Icons.edit_note_rounded,
-                                color: Colors.lightBlue[600],
+                                color: AppColors.primaryBlue,
                               ),
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(14),
@@ -167,7 +167,7 @@ class _CreatePurchasePageState extends State<CreatePurchasePage> {
                               ),
                               focusedBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(14),
-                                borderSide: BorderSide(color: Colors.lightBlue[600]!, width: 2),
+                                borderSide: BorderSide(color: AppColors.primaryBlue, width: 2),
                               ),
                               filled: true,
                               fillColor: Colors.white,
@@ -207,12 +207,12 @@ class _CreatePurchasePageState extends State<CreatePurchasePage> {
                                     padding: const EdgeInsets.all(10),
                                     decoration: BoxDecoration(
                                       gradient: LinearGradient(
-                                        colors: [Colors.purple[300]!, Colors.purple[500]!],
+                                        colors: [AppColors.textSecondary, AppColors.textSecondary],
                                       ),
                                       borderRadius: BorderRadius.circular(10),
                                       boxShadow: [
                                         BoxShadow(
-                                          color: Colors.purple.withOpacity(0.3),
+                                          color: AppColors.textSecondary.withOpacity(0.3),
                                           blurRadius: 6,
                                           offset: const Offset(0, 2),
                                         ),
@@ -268,12 +268,12 @@ class _CreatePurchasePageState extends State<CreatePurchasePage> {
                                     padding: const EdgeInsets.all(6),
                                     decoration: BoxDecoration(
                                       gradient: LinearGradient(
-                                        colors: [Colors.green[400]!, Colors.green[600]!],
+                                        colors: [AppColors.textSecondary, AppColors.textPrimary],
                                       ),
                                       borderRadius: BorderRadius.circular(8),
                                       boxShadow: [
                                         BoxShadow(
-                                          color: Colors.green.withOpacity(0.3),
+                                          color: AppColors.textPrimary.withOpacity(0.3),
                                           blurRadius: 6,
                                           offset: const Offset(0, 2),
                                         ),
@@ -302,12 +302,12 @@ class _CreatePurchasePageState extends State<CreatePurchasePage> {
                                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                                   decoration: BoxDecoration(
                                     gradient: LinearGradient(
-                                      colors: [Colors.lightBlue[400]!, Colors.lightBlue[600]!],
+                                      colors: [AppColors.primaryBlueLight, AppColors.primaryBlue],
                                     ),
                                     borderRadius: BorderRadius.circular(20),
                                     boxShadow: [
                                       BoxShadow(
-                                        color: Colors.lightBlue.withOpacity(0.3),
+                                        color: AppColors.primaryBlue.withOpacity(0.3),
                                         blurRadius: 6,
                                         offset: const Offset(0, 2),
                                       ),
@@ -330,7 +330,7 @@ class _CreatePurchasePageState extends State<CreatePurchasePage> {
                               padding: const EdgeInsets.all(40),
                               decoration: BoxDecoration(
                                 gradient: LinearGradient(
-                                  colors: [Colors.grey[50]!, Colors.grey[100]!],
+                                  colors: [Colors.white, Colors.grey[100]!],
                                 ),
                                 borderRadius: BorderRadius.circular(16),
                                 border: Border.all(color: Colors.grey[200]!, width: 1.5),
@@ -383,22 +383,22 @@ class _CreatePurchasePageState extends State<CreatePurchasePage> {
                                   gradient: LinearGradient(
                                     colors: selectedItemIds.contains(item.id)
                                         ? [
-                                            Colors.lightBlue[50]!,
-                                            Colors.lightBlue[100]!.withOpacity(0.3),
+                                            AppColors.backgroundBlue,
+                                            AppColors.backgroundBlue.withOpacity(0.3),
                                           ]
-                                        : [Colors.white, Colors.grey[50]!],
+                                        : [Colors.white, Colors.white],
                                   ),
                                   borderRadius: BorderRadius.circular(16),
                                   border: Border.all(
                                     color: selectedItemIds.contains(item.id)
-                                        ? Colors.lightBlue[400]!
+                                        ? AppColors.primaryBlueLight
                                         : Colors.grey[200]!,
                                     width: selectedItemIds.contains(item.id) ? 2 : 1.5,
                                   ),
                                   boxShadow: [
                                     BoxShadow(
                                       color: selectedItemIds.contains(item.id)
-                                          ? Colors.lightBlue.withOpacity(0.15)
+                                          ? AppColors.primaryBlue.withOpacity(0.15)
                                           : Colors.black.withOpacity(0.05),
                                       blurRadius: 8,
                                       offset: const Offset(0, 3),
@@ -430,12 +430,12 @@ class _CreatePurchasePageState extends State<CreatePurchasePage> {
                                         ),
                                         decoration: BoxDecoration(
                                           gradient: LinearGradient(
-                                            colors: [Colors.purple[100]!, Colors.purple[200]!],
+                                            colors: [AppColors.backgroundBlue, AppColors.backgroundBlue],
                                           ),
                                           borderRadius: BorderRadius.circular(8),
                                           boxShadow: [
                                             BoxShadow(
-                                              color: Colors.purple.withOpacity(0.2),
+                                              color: AppColors.textSecondary.withOpacity(0.2),
                                               blurRadius: 4,
                                               offset: const Offset(0, 2),
                                             ),
@@ -447,14 +447,14 @@ class _CreatePurchasePageState extends State<CreatePurchasePage> {
                                             Icon(
                                               Icons.category_rounded,
                                               size: 12,
-                                              color: Colors.purple[700],
+                                              color: AppColors.textPrimary,
                                             ),
                                             const SizedBox(width: 4),
                                             Text(
                                               item.category ?? 'Sem categoria',
                                               style: TextStyle(
                                                 fontSize: 12,
-                                                color: Colors.purple[700],
+                                                color: AppColors.textPrimary,
                                                 fontWeight: FontWeight.w600,
                                               ),
                                             ),
@@ -471,12 +471,12 @@ class _CreatePurchasePageState extends State<CreatePurchasePage> {
                                             ),
                                             decoration: BoxDecoration(
                                               gradient: LinearGradient(
-                                                colors: [Colors.orange[100]!, Colors.orange[200]!],
+                                                colors: [AppColors.backgroundBlue, AppColors.backgroundBlue],
                                               ),
                                               borderRadius: BorderRadius.circular(10),
                                               boxShadow: [
                                                 BoxShadow(
-                                                  color: Colors.orange.withOpacity(0.2),
+                                                  color: AppColors.textSecondary.withOpacity(0.2),
                                                   blurRadius: 4,
                                                   offset: const Offset(0, 2),
                                                 ),
@@ -488,14 +488,14 @@ class _CreatePurchasePageState extends State<CreatePurchasePage> {
                                                 Icon(
                                                   Icons.inventory_2_rounded,
                                                   size: 13,
-                                                  color: Colors.orange[800],
+                                                  color: AppColors.textPrimary,
                                                 ),
                                                 const SizedBox(width: 4),
                                                 Text(
                                                   'Qtd: ${item.quantity}',
                                                   style: TextStyle(
                                                     fontSize: 12,
-                                                    color: Colors.orange[800],
+                                                    color: AppColors.textPrimary,
                                                     fontWeight: FontWeight.w700,
                                                   ),
                                                 ),
@@ -511,14 +511,14 @@ class _CreatePurchasePageState extends State<CreatePurchasePage> {
                                             decoration: BoxDecoration(
                                               gradient: LinearGradient(
                                                 colors: [
-                                                  Colors.lightBlue[100]!,
-                                                  Colors.lightBlue[200]!,
+                                                  AppColors.backgroundBlue,
+                                                  AppColors.accentBlue,
                                                 ],
                                               ),
                                               borderRadius: BorderRadius.circular(10),
                                               boxShadow: [
                                                 BoxShadow(
-                                                  color: Colors.lightBlue.withOpacity(0.2),
+                                                  color: AppColors.primaryBlue.withOpacity(0.2),
                                                   blurRadius: 4,
                                                   offset: const Offset(0, 2),
                                                 ),
@@ -530,7 +530,7 @@ class _CreatePurchasePageState extends State<CreatePurchasePage> {
                                                 Icon(
                                                   Icons.attach_money_rounded,
                                                   size: 15,
-                                                  color: Colors.lightBlue[800],
+                                                  color: AppColors.primaryBlueDark,
                                                 ),
                                                 Text(
                                                   PriceHelper.centavosToFormattedString(
@@ -539,7 +539,7 @@ class _CreatePurchasePageState extends State<CreatePurchasePage> {
                                                   style: TextStyle(
                                                     fontSize: 13,
                                                     fontWeight: FontWeight.w700,
-                                                    color: Colors.lightBlue[800],
+                                                    color: AppColors.primaryBlueDark,
                                                     letterSpacing: -0.3,
                                                   ),
                                                 ),
@@ -560,7 +560,7 @@ class _CreatePurchasePageState extends State<CreatePurchasePage> {
                                       }
                                     });
                                   },
-                                  activeColor: Colors.lightBlue[600],
+                                  activeColor: AppColors.primaryBlue,
                                   checkColor: Colors.white,
                                   controlAffinity: ListTileControlAffinity.trailing,
                                   shape: RoundedRectangleBorder(
@@ -582,7 +582,7 @@ class _CreatePurchasePageState extends State<CreatePurchasePage> {
                     gradient: LinearGradient(
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
-                      colors: [Colors.white, Colors.grey[50]!],
+                      colors: [Colors.white, Colors.white],
                     ),
                     boxShadow: [
                       BoxShadow(
@@ -598,12 +598,12 @@ class _CreatePurchasePageState extends State<CreatePurchasePage> {
                       Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          gradient: LinearGradient(colors: [Colors.green[50]!, Colors.green[100]!]),
+                          gradient: LinearGradient(colors: [AppColors.backgroundBlue, AppColors.backgroundBlue]),
                           borderRadius: BorderRadius.circular(14),
-                          border: Border.all(color: Colors.green[200]!, width: 1.5),
+                          border: Border.all(color: AppColors.divider, width: 1.5),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.green.withOpacity(0.15),
+                              color: AppColors.textPrimary.withOpacity(0.15),
                               blurRadius: 8,
                               offset: const Offset(0, 2),
                             ),
@@ -618,12 +618,12 @@ class _CreatePurchasePageState extends State<CreatePurchasePage> {
                                   padding: const EdgeInsets.all(8),
                                   decoration: BoxDecoration(
                                     gradient: LinearGradient(
-                                      colors: [Colors.green[400]!, Colors.green[600]!],
+                                      colors: [AppColors.textSecondary, AppColors.textPrimary],
                                     ),
                                     borderRadius: BorderRadius.circular(10),
                                     boxShadow: [
                                       BoxShadow(
-                                        color: Colors.green.withOpacity(0.3),
+                                        color: AppColors.textPrimary.withOpacity(0.3),
                                         blurRadius: 6,
                                         offset: const Offset(0, 2),
                                       ),
@@ -653,7 +653,7 @@ class _CreatePurchasePageState extends State<CreatePurchasePage> {
                                       style: TextStyle(
                                         fontSize: 18,
                                         fontWeight: FontWeight.w800,
-                                        color: Colors.green[700],
+                                        color: AppColors.textPrimary,
                                         letterSpacing: -0.5,
                                       ),
                                     ),
@@ -700,12 +700,12 @@ class _CreatePurchasePageState extends State<CreatePurchasePage> {
                           child: Ink(
                             decoration: BoxDecoration(
                               gradient: LinearGradient(
-                                colors: [Colors.lightBlue[400]!, Colors.lightBlue[600]!],
+                                colors: [AppColors.primaryBlueLight, AppColors.primaryBlue],
                               ),
                               borderRadius: BorderRadius.circular(14),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.lightBlue.withOpacity(0.4),
+                                  color: AppColors.primaryBlue.withOpacity(0.4),
                                   blurRadius: 12,
                                   offset: const Offset(0, 4),
                                 ),

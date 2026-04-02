@@ -1,57 +1,57 @@
 import 'package:flutter/material.dart';
 
-/// Paleta de cores sofisticada para o Market Express
+/// Paleta de cores da identidade visual do Comprix
 class AppColors {
-  // Azul principal - tom sofisticado e profissional
-  static const Color primaryBlue = Color(0xFF1A56DB); // Azul royal profundo
-  static const Color primaryBlueDark = Color(0xFF1E429F); // Azul escuro
-  static const Color primaryBlueLight = Color(0xFF3B82F6); // Azul claro vibrante
+  // Paleta principal monocromática
+  static const Color primaryBlue = Color(0xFF111111);
+  static const Color primaryBlueDark = Color(0xFF000000);
+  static const Color primaryBlueLight = Color(0xFF1C1C1C);
 
-  // Cores de acento
-  static const Color accentBlue = Color(0xFF60A5FA); // Azul claro para destaques
-  static const Color backgroundBlue = Color(0xFFEFF6FF); // Azul muito claro para backgrounds
+  // Tons de apoio
+  static const Color accentBlue = Color(0xFF2B2B2B);
+  static const Color backgroundBlue = Color(0xFFF7F7F7);
 
-  // Cores de status
-  static const Color success = Color(0xFF10B981); // Verde para sucesso
-  static const Color warning = Color(0xFFF59E0B); // Amarelo/Laranja para avisos
-  static const Color error = Color(0xFFEF4444); // Vermelho para erros
-  static const Color info = Color(0xFF3B82F6); // Azul para informações
+  // Cores de status em escala de cinza
+  static const Color success = textPrimary;
+  static const Color warning = textSecondary;
+  static const Color error = textPrimary;
+  static const Color info = textSecondary;
 
   // Cores neutras
-  static const Color textPrimary = Color(0xFF1F2937); // Cinza escuro para textos
-  static const Color textSecondary = Color(0xFF6B7280); // Cinza médio
-  static const Color textLight = Color(0xFF9CA3AF); // Cinza claro
+  static const Color textPrimary = Color(0xFF111111); // Preto suave para textos
+  static const Color textSecondary = Color(0xFF525252); // Cinza médio
+  static const Color textLight = Color(0xFF8A8A8A); // Cinza claro
 
-  static const Color background = Color(0xFFF9FAFB); // Fundo claro
+  static const Color background = Colors.white; // Fundo claro
   static const Color cardBackground = Colors.white;
-  static const Color divider = Color(0xFFE5E7EB);
+  static const Color divider = Color(0xFFE8E8E8);
 
   // Gradientes
   static const LinearGradient primaryGradient = LinearGradient(
-    colors: [primaryBlue, primaryBlueLight],
+    colors: [primaryBlue, primaryBlue],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
 
   static const LinearGradient accentGradient = LinearGradient(
-    colors: [accentBlue, primaryBlueLight],
+    colors: [accentBlue, accentBlue],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
 
   static const List<Color> categoryColors = [
-    Color(0xFF10B981), // Verde esmeralda
-    Color(0xFF3B82F6), // Azul royal
-    Color(0xFFF59E0B), // Âmbar
-    Color(0xFFEF4444), // Vermelho coral
-    Color(0xFF8B5CF6), // Roxo
-    Color(0xFFEC4899), // Rosa pink
-    Color(0xFF06B6D4), // Ciano
-    Color(0xFF84CC16), // Lima
-    Color(0xFFF97316), // Laranja
-    Color(0xFF14B8A6), // Teal
-    Color(0xFF6366F1), // Índigo
-    Color(0xFFA855F7), // Púrpura
+    Color(0xFF111111),
+    Color(0xFF252525),
+    Color(0xFF383838),
+    Color(0xFF4A4A4A),
+    Color(0xFF5A5A5A),
+    Color(0xFF6A6A6A),
+    Color(0xFF7A7A7A),
+    Color(0xFF8A8A8A),
+    Color(0xFF444444),
+    Color(0xFF555555),
+    Color(0xFF666666),
+    Color(0xFF777777),
   ];
 
   static Color getCategoryColor(String? category) {
@@ -69,6 +69,6 @@ class AppColors {
   }
 
   static Color getCategoryColorLight(String? category) {
-    return getCategoryColor(category).withOpacity(0.15);
+    return getCategoryColor(category).withValues(alpha: 0.12);
   }
 }
