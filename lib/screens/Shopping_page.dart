@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:market_express/controllers/ItemMarketController.dart';
-import 'package:market_express/controllers/ItemPriceController.dart';
 import 'package:market_express/controllers/PurchasesController.dart';
+import 'package:market_express/db/DbHelper.dart';
 import 'package:market_express/models/ItemMarketModel.dart';
 import 'package:market_express/models/PurchaseModel.dart';
 import 'package:market_express/screens/AddItemPage.dart';
@@ -9,6 +9,7 @@ import 'package:market_express/screens/ItemDetailsPage.dart';
 import 'package:market_express/screens/SelectItemPage.dart';
 import 'package:market_express/utils/app_colors.dart';
 import 'package:market_express/utils/price_helper.dart';
+import 'package:market_express/widgets/comprix_app_bar.dart';
 import 'package:market_express/widgets/price_form_field.dart';
 import 'package:provider/provider.dart';
 
@@ -28,6 +29,7 @@ class _ShoppingPageState extends State<ShoppingPage> {
   late Map<int, bool> _isAdded;
   SortOption _currentSort = SortOption.alphabetical;
   bool _showBoughtItems = false;
+  bool _isProcessingCheckAction = false;
 
   String _normalize(String input) {
     final withNoDiacritics = input
@@ -68,6 +70,16 @@ class _ShoppingPageState extends State<ShoppingPage> {
     });
   }
 
+  void _showInfoMessage(String message, {bool isError = false}) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: isError ? AppColors.error : AppColors.primaryBlue,
+      ),
+    );
+  }
+
   Future<_CompleteItemAction?> _askCompleteAction(MarketItem item) async {
     return showDialog<_CompleteItemAction>(
       context: context,
@@ -94,14 +106,12 @@ class _ShoppingPageState extends State<ShoppingPage> {
   }
 
   Future<int?> _askNewPriceCentavos(MarketItem item) async {
-    final controller = TextEditingController(
-      text: PriceHelper.centavosToFormattedStringNoSymbol(
-        item.priceCentavos ?? 0,
-      ),
+    String priceText = PriceHelper.centavosToFormattedStringNoSymbol(
+      item.priceCentavos ?? 0,
     );
     String? errorText;
 
-    final result = await showDialog<int>(
+    return showDialog<int>(
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setStateDialog) => AlertDialog(
@@ -109,34 +119,44 @@ class _ShoppingPageState extends State<ShoppingPage> {
             borderRadius: BorderRadius.circular(16),
           ),
           title: const Text('Atualizar preço'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                item.name,
-                style: const TextStyle(
-                  fontSize: 13,
-                  color: AppColors.textSecondary,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: controller,
-                keyboardType: TextInputType.number,
-                inputFormatters: [BrazilianCurrencyInputFormatter()],
-                decoration: InputDecoration(
-                  labelText: 'Novo preço',
-                  prefixText: 'R\$ ',
-                  errorText: errorText,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  item.name,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    color: AppColors.textSecondary,
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
-                autofocus: true,
-              ),
-            ],
+                const SizedBox(height: 12),
+                TextFormField(
+                  initialValue: priceText,
+                  keyboardType: TextInputType.number,
+                  inputFormatters: [BrazilianCurrencyInputFormatter()],
+                  decoration: InputDecoration(
+                    labelText: 'Novo preço',
+                    prefixText: 'R\$ ',
+                    errorText: errorText,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  autofocus: true,
+                  onChanged: (value) {
+                    priceText = value;
+                    if (errorText != null) {
+                      setStateDialog(() {
+                        errorText = null;
+                      });
+                    }
+                  },
+                ),
+              ],
+            ),
           ),
           actions: [
             TextButton(
@@ -146,7 +166,7 @@ class _ShoppingPageState extends State<ShoppingPage> {
             ElevatedButton(
               onPressed: () {
                 final centavos = PriceHelper.formattedStringToCentavos(
-                  controller.text,
+                  priceText,
                 );
                 if (centavos <= 0) {
                   setStateDialog(() {
@@ -162,62 +182,101 @@ class _ShoppingPageState extends State<ShoppingPage> {
         ),
       ),
     );
-
-    controller.dispose();
-    return result;
   }
 
   Future<void> _markAsBought(MarketItem item) async {
+    if (_isProcessingCheckAction) return;
     if (item.id == null) return;
+    setState(() {
+      _isProcessingCheckAction = true;
+    });
 
-    final action = await _askCompleteAction(item);
-    if (action == null) return;
+    try {
+      final action = await _askCompleteAction(item);
+      if (action == null) return;
 
-    if (action == _CompleteItemAction.updatePrice) {
-      final newPriceCentavos = await _askNewPriceCentavos(item);
-      if (newPriceCentavos == null) return;
-      await Provider.of<ItemPriceController>(
-        context,
-        listen: false,
-      ).updateItemPrice(
-        item.id!,
-        PriceHelper.centavosToDouble(newPriceCentavos),
+      if (action == _CompleteItemAction.updatePrice) {
+        final newPriceCentavos = await _askNewPriceCentavos(item);
+        if (newPriceCentavos == null) return;
+
+        final newPrice = PriceHelper.centavosToDouble(newPriceCentavos);
+        await DBHelper.updateItemPrice(item.id!, newPrice);
+        await DBHelper.insertItemPriceHistory(item.id!, newPrice);
+        await Provider.of<MarketItemController>(
+          context,
+          listen: false,
+        ).loadItems();
+      }
+
+      final updatedIsAdded = Map<int, bool>.from(_isAdded)..[item.id!] = true;
+      await _savePurchaseState(updatedIsAdded);
+    } catch (_) {
+      _showInfoMessage(
+        'Não foi possível concluir o item agora. Tente novamente.',
+        isError: true,
       );
-      await Provider.of<MarketItemController>(
-        context,
-        listen: false,
-      ).loadItems();
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isProcessingCheckAction = false;
+        });
+      }
     }
-
-    final updatedIsAdded = Map<int, bool>.from(_isAdded)..[item.id!] = true;
-    await _savePurchaseState(updatedIsAdded);
   }
 
   Future<void> _unmarkBought(MarketItem item) async {
+    if (_isProcessingCheckAction) return;
     if (item.id == null) return;
+    setState(() {
+      _isProcessingCheckAction = true;
+    });
 
-    final confirm = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('Desmarcar item?'),
-        content: Text('Deseja desmarcar "${item.name}" como comprado?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancelar'),
+    try {
+      final confirm = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
           ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Desmarcar'),
-          ),
-        ],
-      ),
-    );
+          title: const Text('Desmarcar item?'),
+          content: Text('Deseja desmarcar "${item.name}" como comprado?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Cancelar'),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('Desmarcar'),
+            ),
+          ],
+        ),
+      );
 
-    if (confirm != true) return;
-    final updatedIsAdded = Map<int, bool>.from(_isAdded)..[item.id!] = false;
-    await _savePurchaseState(updatedIsAdded);
+      if (confirm != true) return;
+      final updatedIsAdded = Map<int, bool>.from(_isAdded)..[item.id!] = false;
+      await _savePurchaseState(updatedIsAdded);
+    } catch (_) {
+      _showInfoMessage(
+        'Não foi possível desmarcar o item agora. Tente novamente.',
+        isError: true,
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isProcessingCheckAction = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _handleItemToggle(MarketItem item, bool isChecked) async {
+    if (_isProcessingCheckAction) return;
+    if (isChecked) {
+      await _unmarkBought(item);
+    } else {
+      await _markAsBought(item);
+    }
   }
 
   List<MarketItem> _sortItems(List<MarketItem> items) {
@@ -280,7 +339,8 @@ class _ShoppingPageState extends State<ShoppingPage> {
     final progress = totalItems > 0 ? completedCount / totalItems : 0.0;
 
     return Scaffold(
-      appBar: AppBar(
+      appBar: ComprixAppBar(
+        centerTitle: false,
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -289,7 +349,7 @@ class _ShoppingPageState extends State<ShoppingPage> {
               style: const TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 18,
-                color: AppColors.textPrimary,
+                color: Colors.white,
               ),
             ),
             Text(
@@ -297,19 +357,15 @@ class _ShoppingPageState extends State<ShoppingPage> {
               style: const TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w400,
-                color: AppColors.textSecondary,
+                color: Colors.white70,
               ),
             ),
           ],
         ),
-        backgroundColor: Colors.white,
-        foregroundColor: AppColors.textPrimary,
-        elevation: 0.5,
-        shadowColor: Colors.black.withValues(alpha: 0.06),
         actions: [
           // Botão de filtro
           PopupMenuButton<SortOption>(
-            icon: const Icon(Icons.filter_list, color: AppColors.textPrimary),
+            icon: const Icon(Icons.filter_list, color: Colors.white),
             tooltip: 'Ordenar',
             onSelected: (SortOption option) {
               setState(() {
@@ -375,7 +431,7 @@ class _ShoppingPageState extends State<ShoppingPage> {
               completedCount == totalItems
                   ? Icons.check_circle
                   : Icons.shopping_cart_outlined,
-              color: AppColors.textPrimary,
+              color: Colors.white,
             ),
             onPressed: () async {
               final option = await showModalBottomSheet<String>(
@@ -979,11 +1035,7 @@ class _ShoppingPageState extends State<ShoppingPage> {
                                 child: InkWell(
                                   borderRadius: BorderRadius.circular(16),
                                   onTap: () async {
-                                    if (isChecked) {
-                                      await _unmarkBought(item);
-                                    } else {
-                                      await _markAsBought(item);
-                                    }
+                                    await _handleItemToggle(item, isChecked);
                                   },
                                   child: Padding(
                                     padding: const EdgeInsets.all(14),

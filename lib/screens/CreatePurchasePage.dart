@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:market_express/utils/app_colors.dart';
 import 'package:market_express/utils/price_helper.dart';
+import 'package:market_express/widgets/comprix_app_bar.dart';
 import 'package:provider/provider.dart';
 
 import '../controllers/ItemMarketController.dart';
@@ -40,15 +41,9 @@ class _CreatePurchasePageState extends State<CreatePurchasePage> {
         .fold<int>(0, (sum, item) => sum + ((item.priceCentavos ?? 0) * item.quantity));
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(
+      appBar: ComprixAppBar(
+        title: ComprixAppBar.titleText(
           widget.basePurchase != null ? 'Nova Compra (Baseada)' : 'Nova Compra',
-          style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
-        ),
-        backgroundColor: AppColors.primaryBlue,
-        elevation: 0,
-        flexibleSpace: Container(
-          decoration: const BoxDecoration(gradient: AppColors.primaryGradient),
         ),
         leading: IconButton(
           icon: const Icon(Icons.close, color: Colors.white),

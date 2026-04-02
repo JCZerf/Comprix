@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:market_express/utils/app_colors.dart';
 import 'package:market_express/utils/price_helper.dart';
+import 'package:market_express/widgets/comprix_app_bar.dart';
 import 'package:provider/provider.dart';
 
 import '../controllers/ItemMarketController.dart';
@@ -21,16 +22,8 @@ class _SelectItemPageState extends State<SelectItemPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          'Selecionar Item',
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
-        ),
-        backgroundColor: AppColors.primaryBlue,
-        elevation: 0,
-        flexibleSpace: Container(
-          decoration: const BoxDecoration(gradient: AppColors.primaryGradient),
-        ),
+      appBar: ComprixAppBar(
+        title: ComprixAppBar.titleText('Selecionar Item'),
         leading: IconButton(
           icon: const Icon(Icons.close_rounded),
           onPressed: () => Navigator.pop(context),

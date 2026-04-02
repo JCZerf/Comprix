@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:market_express/services/LoadCategories.dart';
 import 'package:market_express/utils/app_colors.dart';
+import 'package:market_express/widgets/comprix_app_bar.dart';
 import 'package:market_express/widgets/price_form_field.dart';
 import 'package:provider/provider.dart';
 
@@ -66,16 +67,8 @@ class _AddItemPageState extends State<AddItemPage> with SingleTickerProviderStat
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          'Adicionar Item',
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
-        ),
-        backgroundColor: AppColors.primaryBlue,
-        elevation: 0,
-        flexibleSpace: Container(
-          decoration: const BoxDecoration(gradient: AppColors.primaryGradient),
-        ),
+      appBar: ComprixAppBar(
+        title: ComprixAppBar.titleText('Adicionar Item'),
         leading: IconButton(
           icon: const Icon(Icons.close_rounded),
           onPressed: () => Navigator.pop(context),

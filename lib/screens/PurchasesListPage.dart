@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:market_express/screens/CreatePurchasePage.dart';
 import 'package:market_express/utils/app_colors.dart';
 import 'package:market_express/utils/price_helper.dart';
+import 'package:market_express/widgets/comprix_app_bar.dart';
 import 'package:provider/provider.dart';
 
 import '../controllers/PurchasesController.dart';
@@ -186,16 +187,8 @@ class PurchasesListPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          'Minhas Compras',
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22),
-        ),
-        backgroundColor: AppColors.primaryBlue,
-        elevation: 0,
-        flexibleSpace: Container(
-          decoration: const BoxDecoration(gradient: AppColors.primaryGradient),
-        ),
+      appBar: ComprixAppBar(
+        title: ComprixAppBar.titleText('Minhas Compras', fontSize: 22),
       ),
       backgroundColor: AppColors.background,
       body: Stack(

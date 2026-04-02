@@ -6,6 +6,7 @@ import 'package:market_express/screens/ItemDetailsPage.dart';
 import 'package:market_express/utils/app_colors.dart';
 import 'package:market_express/utils/price_helper.dart';
 import 'package:market_express/utils/watermark_widget.dart';
+import 'package:market_express/widgets/comprix_app_bar.dart';
 import 'package:provider/provider.dart';
 
 String _normalize(String input) {
@@ -48,19 +49,8 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          'Comprix',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 22,
-            color: AppColors.textPrimary,
-          ),
-        ),
-        backgroundColor: Colors.white,
-        foregroundColor: AppColors.textPrimary,
-        elevation: 0.5,
-        shadowColor: Colors.black.withValues(alpha: 0.06),
+      appBar: ComprixAppBar(
+        title: ComprixAppBar.titleText('Comprix', fontSize: 22),
       ),
       backgroundColor: AppColors.background,
       body: Stack(

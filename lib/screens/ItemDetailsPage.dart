@@ -5,6 +5,7 @@ import 'package:market_express/models/ItemMarketModel.dart';
 import 'package:market_express/screens/PriceUpdatePage.dart';
 import 'package:market_express/services/LoadCategories.dart';
 import 'package:market_express/utils/app_colors.dart';
+import 'package:market_express/widgets/comprix_app_bar.dart';
 import 'package:market_express/widgets/price_form_field.dart';
 import 'package:provider/provider.dart';
 
@@ -76,16 +77,8 @@ class _ItemDetailPageState extends State<ItemDetailPage> with SingleTickerProvid
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          'Detalhes do Item',
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
-        ),
-        backgroundColor: AppColors.primaryBlue,
-        elevation: 0,
-        flexibleSpace: Container(
-          decoration: const BoxDecoration(gradient: AppColors.primaryGradient),
-        ),
+      appBar: ComprixAppBar(
+        title: ComprixAppBar.titleText('Detalhes do Item'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_rounded),
           onPressed: () => Navigator.pop(context),

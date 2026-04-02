@@ -5,6 +5,7 @@ import '../controllers/ItemPriceController.dart';
 import '../models/ItemMarketModel.dart';
 import '../utils/app_colors.dart';
 import '../utils/price_helper.dart';
+import '../widgets/comprix_app_bar.dart';
 // price_form_field removed: price is updated from ItemDetails now
 
 class PriceUpdatePage extends StatefulWidget {
@@ -36,10 +37,8 @@ class _PriceUpdatePageState extends State<PriceUpdatePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Atualizar Preço', style: TextStyle(fontWeight: FontWeight.w600)),
-        backgroundColor: AppColors.primaryBlue,
-        elevation: 0,
+      appBar: ComprixAppBar(
+        title: ComprixAppBar.titleText('Atualizar Preço', fontWeight: FontWeight.w600),
       ),
       backgroundColor: Colors.white,
       body: Stack(

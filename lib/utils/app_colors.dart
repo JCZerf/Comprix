@@ -9,7 +9,7 @@ class AppColors {
 
   // Tons de apoio (cinza frio elegante)
   static const Color accentBlue = Color(0xFF334155);
-  static const Color backgroundBlue = Color(0xFFF8FAFC);
+  static const Color backgroundBlue = Colors.white;
 
   // Cores de status em escala de cinza
   static const Color success = textPrimary;
@@ -18,11 +18,11 @@ class AppColors {
   static const Color info = textSecondary;
 
   // Cores neutras
-  static const Color textPrimary = Color(0xFF0F172A); // Preto azulado
+  static const Color textPrimary = Color(0xFF111111); // Preto
   static const Color textSecondary = Color(0xFF475569); // Cinza frio médio
   static const Color textLight = Color(0xFF94A3B8); // Cinza claro
 
-  static const Color background = Color(0xFFF3F4F6); // Fundo da tela
+  static const Color background = Colors.white; // Fundo da tela
   static const Color cardBackground = Colors.white;
   static const Color divider = Color(0xFFE2E8F0);
 
