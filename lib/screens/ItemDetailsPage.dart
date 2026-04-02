@@ -525,13 +525,31 @@ class _ItemDetailPageState extends State<ItemDetailPage> with SingleTickerProvid
                                       category: category,
                                     );
 
-                                    await Provider.of<MarketItemController>(
-                                      context,
-                                      listen: false,
-                                    ).updateItem(updatedItem);
+                                    try {
+                                      // If price changed, update price + history
+                                      if (widget.item.id != null &&
+                                          (widget.item.priceCentavos ?? 0) != priceCentavos) {
+                                        await Provider.of<ItemPriceController>(
+                                          context,
+                                          listen: false,
+                                        ).updateItemPrice(widget.item.id!, priceCentavos / 100.0);
+                                      }
 
-                                    if (mounted) {
-                                      Navigator.pop(context);
+                                      // Update other item fields (name, qty, description, category)
+                                      await Provider.of<MarketItemController>(
+                                        context,
+                                        listen: false,
+                                      ).updateItem(updatedItem);
+
+                                      if (mounted) Navigator.pop(context);
+                                    } catch (e) {
+                                      if (mounted) {
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          SnackBar(
+                                            content: Text('Erro ao salvar: ${e.toString()}'),
+                                          ),
+                                        );
+                                      }
                                     }
                                   }
                                 },

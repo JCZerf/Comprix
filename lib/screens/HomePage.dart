@@ -8,6 +8,18 @@ import 'package:market_express/utils/price_helper.dart';
 import 'package:market_express/utils/watermark_widget.dart';
 import 'package:provider/provider.dart';
 
+String _normalize(String input) {
+  var s = input;
+  s = s.replaceAll(RegExp('[ÁÀÂÃÄáàâãä]'), 'a');
+  s = s.replaceAll(RegExp('[ÉÈÊËéèêë]'), 'e');
+  s = s.replaceAll(RegExp('[ÍÌÎÏíìîï]'), 'i');
+  s = s.replaceAll(RegExp('[ÓÒÔÕÖóòôõö]'), 'o');
+  s = s.replaceAll(RegExp('[ÚÙÛÜúùûü]'), 'u');
+  s = s.replaceAll(RegExp('[Çç]'), 'c');
+  s = s.replaceAll(RegExp('[Ññ]'), 'n');
+  return s.toLowerCase();
+}
+
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
@@ -21,7 +33,10 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-    Future.microtask(() => Provider.of<MarketItemController>(context, listen: false).loadItems());
+    Future.microtask(
+      () =>
+          Provider.of<MarketItemController>(context, listen: false).loadItems(),
+    );
   }
 
   @override
@@ -67,10 +82,16 @@ class _HomePageState extends State<HomePage> {
                   decoration: InputDecoration(
                     hintText: 'Pesquisar produtos...',
                     hintStyle: TextStyle(color: AppColors.textLight),
-                    prefixIcon: Icon(Icons.search, color: AppColors.primaryBlue),
+                    prefixIcon: Icon(
+                      Icons.search,
+                      color: AppColors.primaryBlue,
+                    ),
                     suffixIcon: _searchController.text.isNotEmpty
                         ? IconButton(
-                            icon: Icon(Icons.clear, color: AppColors.textSecondary),
+                            icon: Icon(
+                              Icons.clear,
+                              color: AppColors.textSecondary,
+                            ),
                             onPressed: () {
                               _searchController.clear();
                               Provider.of<MarketItemController>(
@@ -90,15 +111,24 @@ class _HomePageState extends State<HomePage> {
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: AppColors.primaryBlue, width: 2),
+                      borderSide: const BorderSide(
+                        color: AppColors.primaryBlue,
+                        width: 2,
+                      ),
                     ),
                     filled: true,
                     fillColor: AppColors.backgroundBlue,
-                    contentPadding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+                    contentPadding: const EdgeInsets.symmetric(
+                      vertical: 14,
+                      horizontal: 16,
+                    ),
                   ),
                   onChanged: (value) {
                     setState(() {});
-                    Provider.of<MarketItemController>(context, listen: false).searchItems(value);
+                    Provider.of<MarketItemController>(
+                      context,
+                      listen: false,
+                    ).searchItems(value);
                   },
                 ),
               ),
@@ -137,27 +167,45 @@ class _HomePageState extends State<HomePage> {
                             const SizedBox(height: 8),
                             Text(
                               emptySubMessage,
-                              style: TextStyle(fontSize: 14, color: Colors.grey[500]),
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.grey[500],
+                              ),
                             ),
                           ],
                         ),
                       );
                     }
+                    final visibleItems = List<MarketItem>.from(
+                      controller.items,
+                    );
+                    visibleItems.sort(
+                      (a, b) =>
+                          _normalize(a.name).compareTo(_normalize(b.name)),
+                    );
+
                     return Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
                       child: ListView.builder(
-                        itemCount: controller.items.length,
+                        itemCount: visibleItems.length,
                         itemBuilder: (context, index) {
-                          final MarketItem item = controller.items[index];
+                          final MarketItem item = visibleItems[index];
                           return Container(
                             margin: const EdgeInsets.only(bottom: 12),
                             decoration: BoxDecoration(
                               color: Colors.white,
                               borderRadius: BorderRadius.circular(16),
-                              border: Border.all(color: AppColors.divider.withOpacity(0.5)),
+                              border: Border.all(
+                                color: AppColors.divider.withOpacity(0.5),
+                              ),
                               boxShadow: [
                                 BoxShadow(
-                                  color: AppColors.primaryBlue.withOpacity(0.08),
+                                  color: AppColors.primaryBlue.withOpacity(
+                                    0.08,
+                                  ),
                                   blurRadius: 12,
                                   offset: const Offset(0, 4),
                                 ),
@@ -170,23 +218,30 @@ class _HomePageState extends State<HomePage> {
                                 onTap: () {
                                   Navigator.push(
                                     context,
-                                    MaterialPageRoute(builder: (_) => ItemDetailPage(item: item)),
+                                    MaterialPageRoute(
+                                      builder: (_) =>
+                                          ItemDetailPage(item: item),
+                                    ),
                                   );
                                 },
                                 child: Padding(
                                   padding: const EdgeInsets.all(16),
                                   child: Row(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Container(
                                         width: 56,
                                         height: 56,
                                         decoration: BoxDecoration(
                                           gradient: AppColors.primaryGradient,
-                                          borderRadius: BorderRadius.circular(12),
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
                                           boxShadow: [
                                             BoxShadow(
-                                              color: AppColors.primaryBlue.withOpacity(0.3),
+                                              color: AppColors.primaryBlue
+                                                  .withOpacity(0.3),
                                               blurRadius: 8,
                                               offset: const Offset(0, 2),
                                             ),
@@ -201,7 +256,8 @@ class _HomePageState extends State<HomePage> {
                                       const SizedBox(width: 16),
                                       Expanded(
                                         child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
                                           children: [
                                             Text(
                                               item.name,
@@ -214,13 +270,16 @@ class _HomePageState extends State<HomePage> {
                                             ),
                                             // Adicionar descrição se existir
                                             if (item.description != null &&
-                                                item.description!.isNotEmpty) ...[
+                                                item
+                                                    .description!
+                                                    .isNotEmpty) ...[
                                               const SizedBox(height: 4),
                                               Text(
                                                 item.description!,
                                                 style: const TextStyle(
                                                   fontSize: 13,
-                                                  color: AppColors.textSecondary,
+                                                  color:
+                                                      AppColors.textSecondary,
                                                   fontStyle: FontStyle.italic,
                                                 ),
                                                 maxLines: 2,
@@ -228,21 +287,26 @@ class _HomePageState extends State<HomePage> {
                                               ),
                                             ],
                                             const SizedBox(height: 6),
-                                            if (item.category != null && item.category!.isNotEmpty)
+                                            if (item.category != null &&
+                                                item.category!.isNotEmpty)
                                               Container(
-                                                padding: const EdgeInsets.symmetric(
-                                                  horizontal: 8,
-                                                  vertical: 4,
-                                                ),
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                      horizontal: 8,
+                                                      vertical: 4,
+                                                    ),
                                                 decoration: BoxDecoration(
-                                                  color: AppColors.getCategoryColorLight(
-                                                    item.category,
-                                                  ),
-                                                  borderRadius: BorderRadius.circular(6),
+                                                  color:
+                                                      AppColors.getCategoryColorLight(
+                                                        item.category,
+                                                      ),
+                                                  borderRadius:
+                                                      BorderRadius.circular(6),
                                                   border: Border.all(
-                                                    color: AppColors.getCategoryColor(
-                                                      item.category,
-                                                    ).withOpacity(0.4),
+                                                    color:
+                                                        AppColors.getCategoryColor(
+                                                          item.category,
+                                                        ).withOpacity(0.4),
                                                     width: 1.5,
                                                   ),
                                                 ),
@@ -250,9 +314,10 @@ class _HomePageState extends State<HomePage> {
                                                   item.category!,
                                                   style: TextStyle(
                                                     fontSize: 12,
-                                                    color: AppColors.getCategoryColor(
-                                                      item.category,
-                                                    ).withOpacity(0.85),
+                                                    color:
+                                                        AppColors.getCategoryColor(
+                                                          item.category,
+                                                        ).withOpacity(0.85),
                                                     fontWeight: FontWeight.w700,
                                                   ),
                                                 ),
@@ -261,29 +326,40 @@ class _HomePageState extends State<HomePage> {
                                             Row(
                                               children: [
                                                 Container(
-                                                  padding: const EdgeInsets.symmetric(
-                                                    horizontal: 10,
-                                                    vertical: 5,
-                                                  ),
+                                                  padding:
+                                                      const EdgeInsets.symmetric(
+                                                        horizontal: 10,
+                                                        vertical: 5,
+                                                      ),
                                                   decoration: BoxDecoration(
-                                                    color: AppColors.backgroundBlue,
-                                                    borderRadius: BorderRadius.circular(8),
-                                                    border: Border.all(color: AppColors.divider),
+                                                    color: AppColors
+                                                        .backgroundBlue,
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                          8,
+                                                        ),
+                                                    border: Border.all(
+                                                      color: AppColors.divider,
+                                                    ),
                                                   ),
                                                   child: Row(
                                                     children: [
                                                       const Icon(
-                                                        Icons.shopping_cart_outlined,
+                                                        Icons
+                                                            .shopping_cart_outlined,
                                                         size: 14,
-                                                        color: AppColors.primaryBlue,
+                                                        color: AppColors
+                                                            .primaryBlue,
                                                       ),
                                                       const SizedBox(width: 4),
                                                       Text(
                                                         '${item.quantity}',
                                                         style: const TextStyle(
                                                           fontSize: 13,
-                                                          color: AppColors.textPrimary,
-                                                          fontWeight: FontWeight.w600,
+                                                          color: AppColors
+                                                              .textPrimary,
+                                                          fontWeight:
+                                                              FontWeight.w600,
                                                         ),
                                                       ),
                                                     ],
@@ -296,7 +372,8 @@ class _HomePageState extends State<HomePage> {
                                                   ),
                                                   style: TextStyle(
                                                     fontSize: 16,
-                                                    color: Colors.lightBlue[700],
+                                                    color:
+                                                        Colors.lightBlue[700],
                                                     fontWeight: FontWeight.w600,
                                                   ),
                                                 ),
@@ -314,7 +391,8 @@ class _HomePageState extends State<HomePage> {
                                             barrierDismissible: false,
                                             builder: (context) => AlertDialog(
                                               shape: RoundedRectangleBorder(
-                                                borderRadius: BorderRadius.circular(20),
+                                                borderRadius:
+                                                    BorderRadius.circular(20),
                                               ),
                                               elevation: 8,
                                               backgroundColor: Colors.white,
@@ -322,21 +400,28 @@ class _HomePageState extends State<HomePage> {
                                               content: Container(
                                                 width: 320,
                                                 decoration: BoxDecoration(
-                                                  borderRadius: BorderRadius.circular(20),
+                                                  borderRadius:
+                                                      BorderRadius.circular(20),
                                                 ),
                                                 child: Column(
-                                                  mainAxisSize: MainAxisSize.min,
+                                                  mainAxisSize:
+                                                      MainAxisSize.min,
                                                   children: [
                                                     Padding(
-                                                      padding: const EdgeInsets.all(24),
+                                                      padding:
+                                                          const EdgeInsets.all(
+                                                            24,
+                                                          ),
                                                       child: Column(
                                                         children: [
                                                           RichText(
-                                                            textAlign: TextAlign.center,
+                                                            textAlign: TextAlign
+                                                                .center,
                                                             text: TextSpan(
                                                               style: TextStyle(
                                                                 fontSize: 16,
-                                                                color: Colors.grey[700],
+                                                                color: Colors
+                                                                    .grey[700],
                                                                 height: 1.4,
                                                               ),
                                                               children: [
@@ -345,24 +430,36 @@ class _HomePageState extends State<HomePage> {
                                                                       'Tem certeza que deseja excluir o item ',
                                                                 ),
                                                                 TextSpan(
-                                                                  text: '"${item.name}"',
+                                                                  text:
+                                                                      '"${item.name}"',
                                                                   style: const TextStyle(
-                                                                    fontWeight: FontWeight.w600,
-                                                                    color: Colors.black87,
+                                                                    fontWeight:
+                                                                        FontWeight
+                                                                            .w600,
+                                                                    color: Colors
+                                                                        .black87,
                                                                   ),
                                                                 ),
-                                                                const TextSpan(text: '?'),
+                                                                const TextSpan(
+                                                                  text: '?',
+                                                                ),
                                                               ],
                                                             ),
                                                           ),
-                                                          const SizedBox(height: 8),
+                                                          const SizedBox(
+                                                            height: 8,
+                                                          ),
                                                           Text(
                                                             'Esta ação não pode ser desfeita.',
-                                                            textAlign: TextAlign.center,
+                                                            textAlign: TextAlign
+                                                                .center,
                                                             style: TextStyle(
                                                               fontSize: 14,
-                                                              color: Colors.grey[500],
-                                                              fontStyle: FontStyle.italic,
+                                                              color: Colors
+                                                                  .grey[500],
+                                                              fontStyle:
+                                                                  FontStyle
+                                                                      .italic,
                                                             ),
                                                           ),
                                                         ],
@@ -370,65 +467,102 @@ class _HomePageState extends State<HomePage> {
                                                     ),
                                                     // Botões
                                                     Container(
-                                                      padding: const EdgeInsets.all(20),
+                                                      padding:
+                                                          const EdgeInsets.all(
+                                                            20,
+                                                          ),
                                                       decoration: BoxDecoration(
                                                         color: Colors.grey[50],
-                                                        borderRadius: const BorderRadius.only(
-                                                          bottomLeft: Radius.circular(20),
-                                                          bottomRight: Radius.circular(20),
-                                                        ),
+                                                        borderRadius:
+                                                            const BorderRadius.only(
+                                                              bottomLeft:
+                                                                  Radius.circular(
+                                                                    20,
+                                                                  ),
+                                                              bottomRight:
+                                                                  Radius.circular(
+                                                                    20,
+                                                                  ),
+                                                            ),
                                                       ),
                                                       child: Row(
                                                         children: [
                                                           Expanded(
                                                             child: OutlinedButton(
                                                               onPressed: () =>
-                                                                  Navigator.pop(context),
+                                                                  Navigator.pop(
+                                                                    context,
+                                                                  ),
                                                               style: OutlinedButton.styleFrom(
-                                                                padding: const EdgeInsets.symmetric(
-                                                                  vertical: 14,
-                                                                ),
+                                                                padding:
+                                                                    const EdgeInsets.symmetric(
+                                                                      vertical:
+                                                                          14,
+                                                                    ),
                                                                 side: BorderSide(
-                                                                  color: Colors.grey[300]!,
+                                                                  color: Colors
+                                                                      .grey[300]!,
                                                                 ),
                                                                 shape: RoundedRectangleBorder(
                                                                   borderRadius:
-                                                                      BorderRadius.circular(12),
+                                                                      BorderRadius.circular(
+                                                                        12,
+                                                                      ),
                                                                 ),
                                                               ),
                                                               child: Text(
                                                                 'Cancelar',
                                                                 style: TextStyle(
-                                                                  color: Colors.grey[600],
-                                                                  fontWeight: FontWeight.w600,
+                                                                  color: Colors
+                                                                      .grey[600],
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .w600,
                                                                   fontSize: 16,
                                                                 ),
                                                               ),
                                                             ),
                                                           ),
-                                                          const SizedBox(width: 12),
+                                                          const SizedBox(
+                                                            width: 12,
+                                                          ),
                                                           Expanded(
                                                             child: ElevatedButton(
                                                               onPressed: () {
-                                                                controller.deleteItem(item.id!);
-                                                                Navigator.pop(context);
+                                                                controller
+                                                                    .deleteItem(
+                                                                      item.id!,
+                                                                    );
+                                                                Navigator.pop(
+                                                                  context,
+                                                                );
                                                               },
                                                               style: ElevatedButton.styleFrom(
-                                                                backgroundColor: Colors.red[600],
-                                                                foregroundColor: Colors.white,
-                                                                padding: const EdgeInsets.symmetric(
-                                                                  vertical: 14,
-                                                                ),
+                                                                backgroundColor:
+                                                                    Colors
+                                                                        .red[600],
+                                                                foregroundColor:
+                                                                    Colors
+                                                                        .white,
+                                                                padding:
+                                                                    const EdgeInsets.symmetric(
+                                                                      vertical:
+                                                                          14,
+                                                                    ),
                                                                 elevation: 0,
                                                                 shape: RoundedRectangleBorder(
                                                                   borderRadius:
-                                                                      BorderRadius.circular(12),
+                                                                      BorderRadius.circular(
+                                                                        12,
+                                                                      ),
                                                                 ),
                                                               ),
                                                               child: const Text(
                                                                 'Excluir',
                                                                 style: TextStyle(
-                                                                  fontWeight: FontWeight.w600,
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .w600,
                                                                   fontSize: 16,
                                                                 ),
                                                               ),
@@ -476,12 +610,19 @@ class _HomePageState extends State<HomePage> {
           backgroundColor: AppColors.primaryBlue,
           elevation: 0,
           onPressed: () {
-            Navigator.push(context, MaterialPageRoute(builder: (_) => const AddItemPage()));
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const AddItemPage()),
+            );
           },
           icon: const Icon(Icons.add, color: Colors.white, size: 24),
           label: const Text(
             'Novo Item',
-            style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+            ),
           ),
         ),
       ),

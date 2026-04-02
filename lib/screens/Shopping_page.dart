@@ -24,6 +24,18 @@ class _ShoppingPageState extends State<ShoppingPage> {
   late Map<int, bool> _isAdded;
   SortOption _currentSort = SortOption.alphabetical;
 
+  String _normalize(String input) {
+    final withNoDiacritics = input
+        .replaceAll(RegExp(r'[ÀÁÂÃÄÅàáâãäå]'), 'a')
+        .replaceAll(RegExp(r'[ÈÉÊËèéêë]'), 'e')
+        .replaceAll(RegExp(r'[ÌÍÎÏìíîï]'), 'i')
+        .replaceAll(RegExp(r'[ÒÓÔÕÖØòóôõöø]'), 'o')
+        .replaceAll(RegExp(r'[ÙÚÛÜùúûü]'), 'u')
+        .replaceAll(RegExp(r'[Çç]'), 'c')
+        .replaceAll(RegExp(r'[Ññ]'), 'n');
+    return withNoDiacritics.toLowerCase();
+  }
+
   @override
   void initState() {
     super.initState();
@@ -31,25 +43,35 @@ class _ShoppingPageState extends State<ShoppingPage> {
   }
 
   List<MarketItem> _sortItems(List<MarketItem> items) {
-    final sortedItems = List<MarketItem>.from(items);
+    int compareItems(MarketItem a, MarketItem b) {
+      if (_currentSort == SortOption.alphabetical) {
+        return _normalize(a.name).compareTo(_normalize(b.name));
+      }
 
-    if (_currentSort == SortOption.alphabetical) {
-      sortedItems.sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
-    } else if (_currentSort == SortOption.categoryAlphabetical) {
-      sortedItems.sort((a, b) {
-        final categoryA = a.category ?? '';
-        final categoryB = b.category ?? '';
+      final categoryA = _normalize(a.category ?? '');
+      final categoryB = _normalize(b.category ?? '');
+      final categoryComparison = categoryA.compareTo(categoryB);
+      if (categoryComparison != 0) return categoryComparison;
 
-        // Primeiro compara por categoria
-        final categoryComparison = categoryA.toLowerCase().compareTo(categoryB.toLowerCase());
-        if (categoryComparison != 0) return categoryComparison;
-
-        // Se mesma categoria, ordena alfabeticamente
-        return a.name.toLowerCase().compareTo(b.name.toLowerCase());
-      });
+      return _normalize(a.name).compareTo(_normalize(b.name));
     }
 
-    return sortedItems;
+    final pending = <MarketItem>[];
+    final bought = <MarketItem>[];
+
+    for (final item in items) {
+      final isAdded = _isAdded[item.id] ?? false;
+      if (isAdded) {
+        bought.add(item);
+      } else {
+        pending.add(item);
+      }
+    }
+
+    pending.sort(compareItems);
+    bought.sort(compareItems);
+
+    return [...pending, ...bought];
   }
 
   @override

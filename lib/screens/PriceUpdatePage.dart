@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../controllers/ItemMarketController.dart';
 import '../controllers/ItemPriceController.dart';
 import '../models/ItemMarketModel.dart';
 import '../utils/price_helper.dart';
-import '../widgets/price_form_field.dart';
+// price_form_field removed: price is updated from ItemDetails now
 
 class PriceUpdatePage extends StatefulWidget {
   final MarketItem item;
@@ -17,16 +16,9 @@ class PriceUpdatePage extends StatefulWidget {
 }
 
 class _PriceUpdatePageState extends State<PriceUpdatePage> {
-  final _priceController = TextEditingController();
-  int? newPriceCentavos;
-
   @override
   void initState() {
     super.initState();
-    final currentCentavos = widget.item.priceCentavos ?? 0;
-    _priceController.text = PriceHelper.centavosToFormattedStringNoSymbol(currentCentavos);
-    newPriceCentavos = currentCentavos;
-
     // Carrega o histórico de preços
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (widget.item.id != null) {
@@ -37,7 +29,6 @@ class _PriceUpdatePageState extends State<PriceUpdatePage> {
 
   @override
   void dispose() {
-    _priceController.dispose();
     super.dispose();
   }
 
@@ -161,84 +152,8 @@ class _PriceUpdatePageState extends State<PriceUpdatePage> {
 
                             const SizedBox(height: 20),
 
-                            // Campo novo preço
-                            PriceFormField(
-                              labelText: 'Novo preço',
-                              hintText: '0,00',
-                              initialCentavos: newPriceCentavos,
-                              onChanged: (centavos) {
-                                setState(() {
-                                  newPriceCentavos = centavos;
-                                });
-                              },
-                              onSaved: (centavos) {
-                                setState(() {
-                                  newPriceCentavos = centavos;
-                                });
-                              },
-                              decoration: InputDecoration(
-                                labelText: 'Novo preço',
-                                hintText: '0,00',
-                                prefixIcon: const Icon(Icons.price_change),
-                                prefixText: 'R\$ ',
-                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                                filled: true,
-                                fillColor: Colors.white,
-                              ),
-                            ),
-
-                            const SizedBox(height: 20),
-
-                            // Comparação de preços
-                            if (newPriceCentavos != null &&
-                                newPriceCentavos != (widget.item.priceCentavos ?? 0))
-                              Container(
-                                padding: const EdgeInsets.all(16),
-                                decoration: BoxDecoration(
-                                  color: _getPriceChangeColor().withOpacity(0.1),
-                                  borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(
-                                    color: _getPriceChangeColor().withOpacity(0.3),
-                                  ),
-                                ),
-                                child: Row(
-                                  children: [
-                                    Icon(
-                                      _getPriceChangeIcon(),
-                                      color: _getPriceChangeColor(),
-                                      size: 20,
-                                    ),
-                                    const SizedBox(width: 12),
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            _getPriceChangeText(),
-                                            style: TextStyle(
-                                              fontSize: 14,
-                                              fontWeight: FontWeight.w600,
-                                              color: _getPriceChangeColor(),
-                                            ),
-                                          ),
-                                          Text(
-                                            'Diferença: ${PriceHelper.centavosToFormattedString((_getPriceDifference().abs() * 100).round())}',
-                                            style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    Text(
-                                      '${_getPriceChangePercentage().toStringAsFixed(1)}%',
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.w600,
-                                        color: _getPriceChangeColor(),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
+                            // Nota: o preço agora é atualizado a partir da edição do item (ItemDetails).
+                            // Esta tela exibe somente o preço atual e o histórico.
                           ],
                         ),
                       ),
@@ -426,23 +341,6 @@ class _PriceUpdatePageState extends State<PriceUpdatePage> {
                   child: Row(
                     children: [
                       Expanded(
-                        child: OutlinedButton(
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: Colors.grey[700],
-                            side: BorderSide(color: Colors.grey[300]!),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                            minimumSize: const Size(0, 56),
-                          ),
-                          onPressed: () => Navigator.pop(context),
-                          child: const Text(
-                            'Cancelar',
-                            style: TextStyle(fontWeight: FontWeight.w600),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        flex: 2,
                         child: ElevatedButton(
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.lightBlue[700],
@@ -451,47 +349,10 @@ class _PriceUpdatePageState extends State<PriceUpdatePage> {
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                             minimumSize: const Size(0, 56),
                           ),
-                          onPressed:
-                              newPriceCentavos != null &&
-                                  newPriceCentavos != (widget.item.priceCentavos ?? 0) &&
-                                  newPriceCentavos! > 0
-                              ? () async {
-                                  if (widget.item.id != null) {
-                                    try {
-                                      // Atualiza o preço do item e o histórico
-                                      await Provider.of<ItemPriceController>(
-                                        context,
-                                        listen: false,
-                                      ).updateItemPrice(widget.item.id!, newPriceCentavos! / 100.0);
-
-                                      // Recarrega os itens no controller principal para sincronizar
-                                      await Provider.of<MarketItemController>(
-                                        context,
-                                        listen: false,
-                                      ).loadItems();
-
-                                      Navigator.pop(context, newPriceCentavos! / 100.0);
-                                    } catch (e) {
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        SnackBar(
-                                          content: Text('Erro ao atualizar preço: ${e.toString()}'),
-                                          backgroundColor: Colors.red,
-                                        ),
-                                      );
-                                    }
-                                  }
-                                }
-                              : null,
-                          child: const Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(Icons.update),
-                              SizedBox(width: 8),
-                              Text(
-                                'Atualizar Preço',
-                                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                              ),
-                            ],
+                          onPressed: () => Navigator.pop(context),
+                          child: const Text(
+                            'Fechar',
+                            style: TextStyle(fontWeight: FontWeight.w600),
                           ),
                         ),
                       ),
@@ -504,38 +365,5 @@ class _PriceUpdatePageState extends State<PriceUpdatePage> {
         ],
       ),
     );
-  }
-
-  Color _getPriceChangeColor() {
-    final difference = _getPriceDifference();
-    if (difference > 0) return Colors.red;
-    if (difference < 0) return Colors.green;
-    return Colors.grey;
-  }
-
-  IconData _getPriceChangeIcon() {
-    final difference = _getPriceDifference();
-    if (difference > 0) return Icons.trending_up;
-    if (difference < 0) return Icons.trending_down;
-    return Icons.trending_flat;
-  }
-
-  String _getPriceChangeText() {
-    final difference = _getPriceDifference();
-    if (difference > 0) return 'Preço vai subir';
-    if (difference < 0) return 'Preço vai descer';
-    return 'Preço mantido';
-  }
-
-  double _getPriceDifference() {
-    final newValueInReais = (newPriceCentavos ?? 0) / 100.0;
-    final currentValueInReais = (widget.item.priceCentavos ?? 0) / 100.0;
-    return newValueInReais - currentValueInReais;
-  }
-
-  double _getPriceChangePercentage() {
-    final currentPriceInReais = (widget.item.priceCentavos ?? 0) / 100.0;
-    if (currentPriceInReais == 0) return 0.0;
-    return ((_getPriceDifference()) / currentPriceInReais) * 100;
   }
 }
