@@ -18,9 +18,11 @@ class CreatePurchasePage extends StatefulWidget {
 }
 
 class _CreatePurchasePageState extends State<CreatePurchasePage> {
-  final _formKey = GlobalKey<FormState>();
+  final TextEditingController _searchController = TextEditingController();
   String name = '';
   DateTime date = DateTime.now();
+  String _searchQuery = '';
+  bool _isSavingPurchase = false;
   final Set<int> selectedItemIds = {};
 
   @override
@@ -34,8 +36,205 @@ class _CreatePurchasePageState extends State<CreatePurchasePage> {
   }
 
   @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  String _normalize(String input) {
+    var s = input;
+    s = s.replaceAll(RegExp('[ÁÀÂÃÄáàâãä]'), 'a');
+    s = s.replaceAll(RegExp('[ÉÈÊËéèêë]'), 'e');
+    s = s.replaceAll(RegExp('[ÍÌÎÏíìîï]'), 'i');
+    s = s.replaceAll(RegExp('[ÓÒÔÕÖóòôõö]'), 'o');
+    s = s.replaceAll(RegExp('[ÚÙÛÜúùûü]'), 'u');
+    s = s.replaceAll(RegExp('[Çç]'), 'c');
+    s = s.replaceAll(RegExp('[Ññ]'), 'n');
+    return s.toLowerCase();
+  }
+
+  String _formatShortDate(DateTime value) {
+    final day = value.day.toString().padLeft(2, '0');
+    final month = value.month.toString().padLeft(2, '0');
+    final year = (value.year % 100).toString().padLeft(2, '0');
+    return '$day/$month/$year';
+  }
+
+  Future<void> _openCreatePurchaseModal(int selectedTotalCentavos) async {
+    String purchaseName = name.isNotEmpty
+        ? name
+        : widget.basePurchase != null
+            ? '${widget.basePurchase!.name} (Cópia)'
+            : '';
+    DateTime selectedDate = date;
+    String? errorText;
+
+    final shouldCreate = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (dialogContext, setDialogState) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: const Text('Finalizar compra'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                TextFormField(
+                  initialValue: purchaseName,
+                  autofocus: true,
+                  decoration: InputDecoration(
+                    labelText: 'Nome da compra',
+                    hintText: 'Ex: Compra do mês',
+                    errorText: errorText,
+                    prefixIcon: const Icon(Icons.edit_note_rounded),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  onChanged: (value) {
+                    purchaseName = value;
+                    if (errorText != null) {
+                      setDialogState(() {
+                        errorText = null;
+                      });
+                    }
+                  },
+                ),
+                const SizedBox(height: 12),
+                InkWell(
+                  borderRadius: BorderRadius.circular(12),
+                  onTap: () async {
+                    final picked = await showDatePicker(
+                      context: dialogContext,
+                      initialDate: selectedDate,
+                      firstDate: DateTime(2020),
+                      lastDate: DateTime(2100),
+                    );
+                    if (picked != null) {
+                      setDialogState(() {
+                        selectedDate = picked;
+                      });
+                    }
+                  },
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: AppColors.divider),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.calendar_month_rounded, size: 20),
+                        const SizedBox(width: 10),
+                        Text(
+                          _formatShortDate(selectedDate),
+                          style: const TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.textPrimary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  '${selectedItemIds.length} item${selectedItemIds.length == 1 ? '' : 's'} selecionado${selectedItemIds.length == 1 ? '' : 's'}',
+                  style: const TextStyle(
+                    fontSize: 13,
+                    color: AppColors.textSecondary,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  'Total: ${PriceHelper.centavosToFormattedString(selectedTotalCentavos)}',
+                  style: const TextStyle(
+                    fontSize: 14,
+                    color: AppColors.textPrimary,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext, false),
+              child: const Text('Cancelar'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                final normalizedName = purchaseName.trim();
+                if (normalizedName.isEmpty) {
+                  setDialogState(() {
+                    errorText = 'Informe o nome da compra';
+                  });
+                  return;
+                }
+                name = normalizedName;
+                date = selectedDate;
+                Navigator.pop(dialogContext, true);
+              },
+              child: const Text('Criar compra'),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (shouldCreate != true) return;
+
+    if (_isSavingPurchase) return;
+    setState(() {
+      _isSavingPurchase = true;
+    });
+
+    try {
+      final Map<int, bool> isAdded = {
+        for (var id in selectedItemIds) id: false,
+      };
+      final purchase = Purchase(
+        name: name,
+        date: date,
+        itemIds: selectedItemIds.toList(),
+        totalValue: selectedTotalCentavos / 100.0,
+        isAdded: isAdded,
+      );
+      await Provider.of<PurchaseController>(context, listen: false).addPurchase(purchase);
+      if (!mounted) return;
+      Navigator.pop(context);
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Não foi possível salvar agora. Tente novamente.'),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isSavingPurchase = false;
+        });
+      }
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final items = Provider.of<MarketItemController>(context).items;
+    final normalizedQuery = _normalize(_searchQuery.trim());
+    final filteredItems = normalizedQuery.isEmpty
+        ? items
+        : items.where((item) {
+            final itemName = _normalize(item.name);
+            final category = _normalize(item.category ?? '');
+            return itemName.contains(normalizedQuery) || category.contains(normalizedQuery);
+          }).toList();
     final selectedTotalCentavos = items
         .where((item) => selectedItemIds.contains(item.id))
         .fold<int>(0, (sum, item) => sum + ((item.priceCentavos ?? 0) * item.quantity));
@@ -134,126 +333,54 @@ class _CreatePurchasePageState extends State<CreatePurchasePage> {
                 child: SingleChildScrollView(
                   child: Padding(
                     padding: const EdgeInsets.all(24.0),
-                    child: Form(
-                      key: _formKey,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          TextFormField(
-                            decoration: InputDecoration(
-                              labelText: 'Nome da compra',
-                              labelStyle: TextStyle(
-                                color: Colors.grey[700],
-                                fontWeight: FontWeight.w600,
-                              ),
-                              hintText: 'Ex: Compra do mês',
-                              hintStyle: TextStyle(color: Colors.grey[400]),
-                              prefixIcon: Icon(
-                                Icons.edit_note_rounded,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        TextField(
+                          controller: _searchController,
+                          decoration: InputDecoration(
+                            labelText: 'Pesquisar itens',
+                            hintText: 'Digite nome ou categoria',
+                            prefixIcon: const Icon(
+                              Icons.search_rounded,
+                              color: AppColors.primaryBlue,
+                            ),
+                            suffixIcon: _searchQuery.isNotEmpty
+                                ? IconButton(
+                                    icon: const Icon(Icons.clear_rounded),
+                                    onPressed: () {
+                                      _searchController.clear();
+                                      setState(() {
+                                        _searchQuery = '';
+                                      });
+                                    },
+                                  )
+                                : null,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(14),
+                              borderSide: BorderSide(color: Colors.grey[300]!),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(14),
+                              borderSide: BorderSide(color: Colors.grey[300]!),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(14),
+                              borderSide: const BorderSide(
                                 color: AppColors.primaryBlue,
-                              ),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(14),
-                                borderSide: BorderSide(color: Colors.grey[300]!),
-                              ),
-                              enabledBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(14),
-                                borderSide: BorderSide(color: Colors.grey[300]!),
-                              ),
-                              focusedBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(14),
-                                borderSide: BorderSide(color: AppColors.primaryBlue, width: 2),
-                              ),
-                              filled: true,
-                              fillColor: Colors.white,
-                            ),
-                            onSaved: (value) => name = value!.trim(),
-                            validator: (value) =>
-                                value == null || value.isEmpty ? 'Informe o nome' : null,
-                          ),
-                          const SizedBox(height: 20),
-                          InkWell(
-                            onTap: () async {
-                              final picked = await showDatePicker(
-                                context: context,
-                                initialDate: date,
-                                firstDate: DateTime(2020),
-                                lastDate: DateTime(2100),
-                              );
-                              if (picked != null) setState(() => date = picked);
-                            },
-                            child: Container(
-                              padding: const EdgeInsets.all(18),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(14),
-                                border: Border.all(color: Colors.grey[300]!, width: 1.5),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withOpacity(0.05),
-                                    blurRadius: 8,
-                                    offset: const Offset(0, 2),
-                                  ),
-                                ],
-                              ),
-                              child: Row(
-                                children: [
-                                  Container(
-                                    padding: const EdgeInsets.all(10),
-                                    decoration: BoxDecoration(
-                                      gradient: LinearGradient(
-                                        colors: [AppColors.textSecondary, AppColors.textSecondary],
-                                      ),
-                                      borderRadius: BorderRadius.circular(10),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: AppColors.textSecondary.withOpacity(0.3),
-                                          blurRadius: 6,
-                                          offset: const Offset(0, 2),
-                                        ),
-                                      ],
-                                    ),
-                                    child: const Icon(
-                                      Icons.calendar_month_rounded,
-                                      color: Colors.white,
-                                      size: 20,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 16),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          'Data da compra',
-                                          style: TextStyle(
-                                            fontSize: 12,
-                                            color: Colors.grey[600],
-                                            fontWeight: FontWeight.w600,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 4),
-                                        Text(
-                                          '${date.day}/${date.month}/${date.year}',
-                                          style: const TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.w700,
-                                            color: Colors.black87,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  Icon(
-                                    Icons.arrow_forward_ios_rounded,
-                                    size: 16,
-                                    color: Colors.grey[400],
-                                  ),
-                                ],
+                                width: 2,
                               ),
                             ),
+                            filled: true,
+                            fillColor: Colors.white,
                           ),
-                          const SizedBox(height: 24),
+                          onChanged: (value) {
+                            setState(() {
+                              _searchQuery = value;
+                            });
+                          },
+                        ),
+                        const SizedBox(height: 24),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
@@ -370,8 +497,58 @@ class _CreatePurchasePageState extends State<CreatePurchasePage> {
                                 ),
                               ),
                             )
+                          else if (filteredItems.isEmpty)
+                            Container(
+                              padding: const EdgeInsets.all(40),
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  colors: [Colors.white, Colors.grey[100]!],
+                                ),
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(color: Colors.grey[200]!, width: 1.5),
+                              ),
+                              child: Center(
+                                child: Column(
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.all(20),
+                                      decoration: BoxDecoration(
+                                        color: Colors.white,
+                                        shape: BoxShape.circle,
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: Colors.black.withOpacity(0.1),
+                                            blurRadius: 12,
+                                            offset: const Offset(0, 4),
+                                          ),
+                                        ],
+                                      ),
+                                      child: Icon(
+                                        Icons.search_off_rounded,
+                                        size: 48,
+                                        color: Colors.grey[400],
+                                      ),
+                                    ),
+                                    const SizedBox(height: 20),
+                                    Text(
+                                      'Nenhum item encontrado',
+                                      style: TextStyle(
+                                        color: Colors.grey[700],
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      'Tente outro termo de pesquisa',
+                                      style: TextStyle(fontSize: 13, color: Colors.grey[500]),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            )
                           else
-                            ...items.map(
+                            ...filteredItems.map(
                               (item) => Container(
                                 margin: const EdgeInsets.only(bottom: 12),
                                 decoration: BoxDecoration(
@@ -569,7 +746,6 @@ class _CreatePurchasePageState extends State<CreatePurchasePage> {
                     ),
                   ),
                 ),
-              ),
               if (selectedItemIds.isNotEmpty)
                 Container(
                   padding: const EdgeInsets.all(24),
@@ -672,26 +848,12 @@ class _CreatePurchasePageState extends State<CreatePurchasePage> {
                             padding: EdgeInsets.zero,
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                           ),
-                          onPressed: () {
-                            if (_formKey.currentState!.validate() && selectedItemIds.isNotEmpty) {
-                              _formKey.currentState!.save();
-                              final Map<int, bool> isAdded = {
-                                for (var id in selectedItemIds) id: false,
-                              };
-                              final purchase = Purchase(
-                                name: name,
-                                date: date,
-                                itemIds: selectedItemIds.toList(),
-                                totalValue: selectedTotalCentavos / 100.0,
-                                isAdded: isAdded,
-                              );
-                              Provider.of<PurchaseController>(
-                                context,
-                                listen: false,
-                              ).addPurchase(purchase);
-                              Navigator.pop(context);
-                            }
-                          },
+                          onPressed: _isSavingPurchase
+                              ? null
+                              : () async {
+                                  if (selectedItemIds.isEmpty) return;
+                                  await _openCreatePurchaseModal(selectedTotalCentavos);
+                                },
                           child: Ink(
                             decoration: BoxDecoration(
                               gradient: LinearGradient(
@@ -711,16 +873,36 @@ class _CreatePurchasePageState extends State<CreatePurchasePage> {
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  const Icon(Icons.add_shopping_cart_rounded, size: 24),
-                                  const SizedBox(width: 12),
-                                  Text(
-                                    'Criar Compra (${selectedItemIds.length} ${selectedItemIds.length == 1 ? 'item' : 'itens'})',
-                                    style: const TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w700,
-                                      letterSpacing: -0.3,
+                                  if (_isSavingPurchase) ...[
+                                    const SizedBox(
+                                      width: 20,
+                                      height: 20,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                      ),
                                     ),
-                                  ),
+                                    const SizedBox(width: 12),
+                                    const Text(
+                                      'Salvando...',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w700,
+                                        letterSpacing: -0.3,
+                                      ),
+                                    ),
+                                  ] else ...[
+                                    const Icon(Icons.add_shopping_cart_rounded, size: 24),
+                                    const SizedBox(width: 12),
+                                    Text(
+                                      'Criar Compra (${selectedItemIds.length} ${selectedItemIds.length == 1 ? 'item' : 'itens'})',
+                                      style: const TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w700,
+                                        letterSpacing: -0.3,
+                                      ),
+                                    ),
+                                  ],
                                 ],
                               ),
                             ),

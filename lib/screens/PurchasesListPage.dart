@@ -12,6 +12,13 @@ import 'Shopping_page.dart';
 class PurchasesListPage extends StatelessWidget {
   const PurchasesListPage({super.key});
 
+  String _formatShortDate(DateTime value) {
+    final day = value.day.toString().padLeft(2, '0');
+    final month = value.month.toString().padLeft(2, '0');
+    final year = (value.year % 100).toString().padLeft(2, '0');
+    return '$day/$month/$year';
+  }
+
   void _showOptionsMenu(BuildContext context, Purchase purchase) {
     showModalBottomSheet(
       context: context,
@@ -266,7 +273,10 @@ class PurchasesListPage extends StatelessWidget {
                                       decoration: BoxDecoration(
                                         gradient: completedCount == itemCount
                                             ? const LinearGradient(
-                                                colors: [AppColors.success, Color(0xFF34D399)],
+                                                colors: [
+                                                  AppColors.primaryBlue,
+                                                  AppColors.primaryBlueLight,
+                                                ],
                                                 begin: Alignment.topLeft,
                                                 end: Alignment.bottomRight,
                                               )
@@ -316,7 +326,7 @@ class PurchasesListPage extends StatelessWidget {
                                               ),
                                               const SizedBox(width: 4),
                                               Text(
-                                                '${purchase.date.day}/${purchase.date.month}/${purchase.date.year}',
+                                                _formatShortDate(purchase.date),
                                                 style: const TextStyle(
                                                   fontSize: 14,
                                                   color: AppColors.textSecondary,
