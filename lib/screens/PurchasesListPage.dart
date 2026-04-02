@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:market_express/screens/CreatePurchasePage.dart';
 import 'package:market_express/utils/app_colors.dart';
 import 'package:market_express/utils/price_helper.dart';
+import 'package:market_express/utils/watermark_widget.dart';
 import 'package:market_express/widgets/comprix_app_bar.dart';
 import 'package:provider/provider.dart';
 
@@ -224,9 +225,10 @@ class _PurchasesListPageState extends State<PurchasesListPage> {
         ],
       ),
       backgroundColor: AppColors.background,
-      body: Stack(
+      body: Column(
         children: [
-          Consumer<PurchaseController>(
+          Expanded(
+            child: Consumer<PurchaseController>(
             builder: (context, controller, child) {
               if (controller.purchases.isEmpty) {
                 return Center(
@@ -583,6 +585,8 @@ class _PurchasesListPageState extends State<PurchasesListPage> {
               );
             },
           ),
+          ),
+          const WatermarkWidget(),
         ],
       ),
       floatingActionButton: Container(

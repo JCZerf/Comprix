@@ -1007,11 +1007,24 @@ class _ShoppingPageState extends State<ShoppingPage> {
                             return Container(
                               margin: const EdgeInsets.only(bottom: 14),
                               decoration: BoxDecoration(
-                                color: Colors.white,
+                                gradient: isChecked
+                                    ? const LinearGradient(
+                                        begin: Alignment.topLeft,
+                                        end: Alignment.bottomRight,
+                                        colors: [
+                                          Color(0xFFF8FAFC),
+                                          Color(0xFFE5E7EB),
+                                          Color(0xFFCBD5E1),
+                                        ],
+                                      )
+                                    : null,
+                                color: isChecked ? null : Colors.white,
                                 borderRadius: BorderRadius.circular(16),
                                 border: Border.all(
                                   color: isChecked
-                                      ? AppColors.divider
+                                      ? AppColors.textPrimary.withValues(
+                                          alpha: 0.22,
+                                        )
                                       : AppColors.primaryBlue.withValues(
                                           alpha: 0.12,
                                         ),
@@ -1031,16 +1044,31 @@ class _ShoppingPageState extends State<ShoppingPage> {
                                 ],
                               ),
                               child: Material(
-                                color: Colors.white,
+                                color: Colors.transparent,
                                 child: InkWell(
                                   borderRadius: BorderRadius.circular(16),
                                   onTap: () async {
                                     await _handleItemToggle(item, isChecked);
                                   },
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(14),
-                                    child: Row(
-                                      children: [
+                                  child: Stack(
+                                    children: [
+                                      if (isChecked)
+                                        Positioned.fill(
+                                          child: ClipRRect(
+                                            borderRadius: BorderRadius.circular(
+                                              16,
+                                            ),
+                                            child: IgnorePointer(
+                                              child: CustomPaint(
+                                                painter: _PurchasedStripePainter(),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      Padding(
+                                        padding: const EdgeInsets.all(14),
+                                        child: Row(
+                                          children: [
                                         Container(
                                           width: 24,
                                           height: 24,
@@ -1726,8 +1754,10 @@ class _ShoppingPageState extends State<ShoppingPage> {
                                             ),
                                           ],
                                         ),
-                                      ],
-                                    ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
                               ),
@@ -1936,4 +1966,21 @@ class _ShoppingPageState extends State<ShoppingPage> {
       ),
     );
   }
+}
+
+class _PurchasedStripePainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.black.withValues(alpha: 0.06)
+      ..strokeWidth = 1.1;
+
+    const spacing = 12.0;
+    for (double x = -size.height; x < size.width; x += spacing) {
+      canvas.drawLine(Offset(x, 0), Offset(x + size.height, size.height), paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
