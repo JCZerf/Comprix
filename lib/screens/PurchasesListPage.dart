@@ -9,14 +9,27 @@ import '../controllers/PurchasesController.dart';
 import '../models/PurchaseModel.dart';
 import 'Shopping_page.dart';
 
-class PurchasesListPage extends StatelessWidget {
+class PurchasesListPage extends StatefulWidget {
   const PurchasesListPage({super.key});
+
+  @override
+  State<PurchasesListPage> createState() => _PurchasesListPageState();
+}
+
+class _PurchasesListPageState extends State<PurchasesListPage> {
+  bool _showCompletedPurchases = false;
 
   String _formatShortDate(DateTime value) {
     final day = value.day.toString().padLeft(2, '0');
     final month = value.month.toString().padLeft(2, '0');
     final year = (value.year % 100).toString().padLeft(2, '0');
     return '$day/$month/$year';
+  }
+
+  bool _isPurchaseCompleted(Purchase purchase) {
+    final itemCount = purchase.itemIds.length;
+    final completedCount = purchase.isAdded.values.where((v) => v).length;
+    return itemCount > 0 && completedCount >= itemCount;
   }
 
   void _showOptionsMenu(BuildContext context, Purchase purchase) {
@@ -104,7 +117,7 @@ class PurchasesListPage extends StatelessWidget {
   void _confirmDelete(BuildContext context, PurchaseController controller, int id) {
     showDialog(
       context: context,
-      barrierDismissible: false, // Evita fechar clicando fora
+      barrierDismissible: false,
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         elevation: 8,
@@ -138,12 +151,11 @@ class PurchasesListPage extends StatelessWidget {
                   ],
                 ),
               ),
-              // Botões
               Container(
                 padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
+                decoration: const BoxDecoration(
                   color: Colors.white,
-                  borderRadius: const BorderRadius.only(
+                  borderRadius: BorderRadius.only(
                     bottomLeft: Radius.circular(16),
                     bottomRight: Radius.circular(16),
                   ),
@@ -196,6 +208,20 @@ class PurchasesListPage extends StatelessWidget {
     return Scaffold(
       appBar: ComprixAppBar(
         title: ComprixAppBar.titleText('Minhas Compras', fontSize: 22),
+        actions: [
+          IconButton(
+            tooltip: _showCompletedPurchases ? 'Ocultar concluídas' : 'Mostrar concluídas',
+            icon: Icon(
+              _showCompletedPurchases ? Icons.visibility_off_rounded : Icons.visibility_rounded,
+              color: Colors.white,
+            ),
+            onPressed: () {
+              setState(() {
+                _showCompletedPurchases = !_showCompletedPurchases;
+              });
+            },
+          ),
+        ],
       ),
       backgroundColor: AppColors.background,
       body: Stack(
@@ -227,230 +253,332 @@ class PurchasesListPage extends StatelessWidget {
                   ),
                 );
               }
+
+              final sortedPurchases = List<Purchase>.from(controller.purchases)
+                ..sort((a, b) {
+                  final dateCompare = b.date.compareTo(a.date);
+                  if (dateCompare != 0) return dateCompare;
+                  return (b.id ?? 0).compareTo(a.id ?? 0);
+                });
+
+              final visiblePurchases = _showCompletedPurchases
+                  ? sortedPurchases
+                  : sortedPurchases.where((purchase) => !_isPurchaseCompleted(purchase)).toList();
+
+              final hiddenCompletedCount = sortedPurchases.length - visiblePurchases.length;
+
+              if (visiblePurchases.isEmpty) {
+                return Center(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 28),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.visibility_off_rounded, size: 72, color: AppColors.textLight),
+                        const SizedBox(height: 16),
+                        const Text(
+                          'Todas as compras concluídas estão ocultas',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 18,
+                            color: AppColors.textPrimary,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          '$hiddenCompletedCount compra${hiddenCompletedCount == 1 ? '' : 's'} concluída${hiddenCompletedCount == 1 ? '' : 's'} oculta${hiddenCompletedCount == 1 ? '' : 's'}',
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        ElevatedButton.icon(
+                          onPressed: () {
+                            setState(() {
+                              _showCompletedPurchases = true;
+                            });
+                          },
+                          icon: const Icon(Icons.visibility_rounded, size: 18),
+                          label: const Text('Mostrar concluídas'),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }
+
               return Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                child: ListView.builder(
-                  itemCount: controller.purchases.length,
-                  itemBuilder: (context, index) {
-                    final Purchase purchase = controller.purchases[index];
-                    final itemCount = purchase.itemIds.length;
-                    final completedCount = purchase.isAdded.values.where((v) => v).length;
-
-                    return Container(
-                      margin: const EdgeInsets.only(bottom: 12),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: AppColors.divider.withOpacity(0.5)),
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppColors.primaryBlue.withOpacity(0.08),
-                            blurRadius: 12,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
+                child: Column(
+                  children: [
+                    if (!_showCompletedPurchases && hiddenCompletedCount > 0)
+                      Container(
+                        width: double.infinity,
+                        margin: const EdgeInsets.only(bottom: 12),
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                        decoration: BoxDecoration(
+                          color: AppColors.backgroundBlue,
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: AppColors.divider),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(
+                              Icons.visibility_off_rounded,
+                              size: 16,
+                              color: AppColors.textSecondary,
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                '$hiddenCompletedCount compra${hiddenCompletedCount == 1 ? '' : 's'} concluída${hiddenCompletedCount == 1 ? '' : 's'} oculta${hiddenCompletedCount == 1 ? '' : 's'}',
+                                style: const TextStyle(
+                                  color: AppColors.textSecondary,
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                            TextButton(
+                              onPressed: () {
+                                setState(() {
+                                  _showCompletedPurchases = true;
+                                });
+                              },
+                              child: const Text('Mostrar'),
+                            ),
+                          ],
+                        ),
                       ),
-                      child: Material(
-                        color: Colors.transparent,
-                        child: InkWell(
-                          borderRadius: BorderRadius.circular(16),
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (_) => ShoppingPage(purchase: purchase)),
-                            );
-                          },
-                          child: Padding(
-                            padding: const EdgeInsets.all(16),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  children: [
-                                    Container(
-                                      width: 56,
-                                      height: 56,
-                                      decoration: BoxDecoration(
-                                        gradient: completedCount == itemCount
-                                            ? const LinearGradient(
-                                                colors: [
-                                                  AppColors.primaryBlue,
-                                                  AppColors.primaryBlueLight,
-                                                ],
-                                                begin: Alignment.topLeft,
-                                                end: Alignment.bottomRight,
-                                              )
-                                            : AppColors.primaryGradient,
-                                        borderRadius: BorderRadius.circular(14),
-                                        boxShadow: [
-                                          BoxShadow(
-                                            color:
-                                                (completedCount == itemCount
-                                                        ? AppColors.success
-                                                        : AppColors.primaryBlue)
-                                                    .withOpacity(0.3),
-                                            blurRadius: 8,
-                                            offset: const Offset(0, 2),
-                                          ),
-                                        ],
-                                      ),
-                                      child: Icon(
-                                        completedCount == itemCount
-                                            ? Icons.check_circle_rounded
-                                            : Icons.shopping_bag_rounded,
-                                        color: Colors.white,
-                                        size: 28,
-                                      ),
-                                    ),
-                                    const SizedBox(width: 16),
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
+                    Expanded(
+                      child: ListView.builder(
+                        itemCount: visiblePurchases.length,
+                        itemBuilder: (context, index) {
+                          final purchase = visiblePurchases[index];
+                          final itemCount = purchase.itemIds.length;
+                          final completedCount = purchase.isAdded.values.where((v) => v).length;
+                          final isCompletedPurchase = _isPurchaseCompleted(purchase);
+
+                          return Container(
+                            margin: const EdgeInsets.only(bottom: 12),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(color: AppColors.divider.withOpacity(0.5)),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: AppColors.primaryBlue.withOpacity(0.08),
+                                  blurRadius: 12,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: Material(
+                              color: Colors.transparent,
+                              child: InkWell(
+                                borderRadius: BorderRadius.circular(16),
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(builder: (_) => ShoppingPage(purchase: purchase)),
+                                  );
+                                },
+                                child: Padding(
+                                  padding: const EdgeInsets.all(16),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
                                         children: [
-                                          Text(
-                                            purchase.name,
-                                            style: const TextStyle(
-                                              fontSize: 17,
-                                              fontWeight: FontWeight.bold,
-                                              color: AppColors.textPrimary,
-                                              letterSpacing: -0.5,
+                                          Container(
+                                            width: 56,
+                                            height: 56,
+                                            decoration: BoxDecoration(
+                                              gradient: isCompletedPurchase
+                                                  ? const LinearGradient(
+                                                      colors: [
+                                                        AppColors.primaryBlue,
+                                                        AppColors.primaryBlueLight,
+                                                      ],
+                                                      begin: Alignment.topLeft,
+                                                      end: Alignment.bottomRight,
+                                                    )
+                                                  : AppColors.primaryGradient,
+                                              borderRadius: BorderRadius.circular(14),
+                                              boxShadow: [
+                                                BoxShadow(
+                                                  color:
+                                                      (isCompletedPurchase
+                                                                  ? AppColors.success
+                                                                  : AppColors.primaryBlue)
+                                                              .withOpacity(0.3),
+                                                  blurRadius: 8,
+                                                  offset: const Offset(0, 2),
+                                                ),
+                                              ],
+                                            ),
+                                            child: Icon(
+                                              isCompletedPurchase
+                                                  ? Icons.check_circle_rounded
+                                                  : Icons.shopping_bag_rounded,
+                                              color: Colors.white,
+                                              size: 28,
                                             ),
                                           ),
-                                          const SizedBox(height: 4),
-                                          Row(
-                                            children: [
-                                              Icon(
-                                                Icons.calendar_today,
-                                                size: 14,
-                                                color: AppColors.textSecondary,
-                                              ),
-                                              const SizedBox(width: 4),
-                                              Text(
-                                                _formatShortDate(purchase.date),
-                                                style: const TextStyle(
-                                                  fontSize: 14,
-                                                  color: AppColors.textSecondary,
+                                          const SizedBox(width: 16),
+                                          Expanded(
+                                            child: Column(
+                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  purchase.name,
+                                                  style: const TextStyle(
+                                                    fontSize: 17,
+                                                    fontWeight: FontWeight.bold,
+                                                    color: AppColors.textPrimary,
+                                                    letterSpacing: -0.5,
+                                                  ),
                                                 ),
+                                                const SizedBox(height: 4),
+                                                Row(
+                                                  children: [
+                                                    const Icon(
+                                                      Icons.calendar_today,
+                                                      size: 14,
+                                                      color: AppColors.textSecondary,
+                                                    ),
+                                                    const SizedBox(width: 4),
+                                                    Text(
+                                                      _formatShortDate(purchase.date),
+                                                      style: const TextStyle(
+                                                        fontSize: 14,
+                                                        color: AppColors.textSecondary,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                          Column(
+                                            crossAxisAlignment: CrossAxisAlignment.end,
+                                            children: [
+                                              Text(
+                                                PriceHelper.centavosToFormattedString(
+                                                  (purchase.totalValue * 100).round(),
+                                                ),
+                                                style: const TextStyle(
+                                                  fontSize: 17,
+                                                  color: AppColors.primaryBlue,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                              const SizedBox(height: 8),
+                                              IconButton(
+                                                icon: const Icon(
+                                                  Icons.more_vert,
+                                                  color: AppColors.textSecondary,
+                                                  size: 24,
+                                                ),
+                                                tooltip: 'Mais opções',
+                                                onPressed: () => _showOptionsMenu(context, purchase),
                                               ),
                                             ],
                                           ),
                                         ],
                                       ),
-                                    ),
-                                    Column(
-                                      crossAxisAlignment: CrossAxisAlignment.end,
-                                      children: [
-                                        Text(
-                                          PriceHelper.centavosToFormattedString(
-                                            (purchase.totalValue * 100).round(),
-                                          ),
-                                          style: const TextStyle(
-                                            fontSize: 17,
-                                            color: AppColors.primaryBlue,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 8),
-                                        IconButton(
-                                          icon: const Icon(
-                                            Icons.more_vert,
-                                            color: AppColors.textSecondary,
-                                            size: 24,
-                                          ),
-                                          tooltip: 'Mais opções',
-                                          onPressed: () => _showOptionsMenu(context, purchase),
-                                        ),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 12),
-                                Row(
-                                  children: [
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 10,
-                                        vertical: 6,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: AppColors.backgroundBlue,
-                                        borderRadius: BorderRadius.circular(8),
-                                        border: Border.all(color: AppColors.divider),
-                                      ),
-                                      child: Row(
+                                      const SizedBox(height: 12),
+                                      Row(
                                         children: [
-                                          const Icon(
-                                            Icons.shopping_cart_outlined,
-                                            size: 14,
-                                            color: AppColors.primaryBlue,
-                                          ),
-                                          const SizedBox(width: 4),
-                                          Text(
-                                            '$itemCount ${itemCount == 1 ? 'item' : 'itens'}',
-                                            style: const TextStyle(
-                                              fontSize: 13,
-                                              color: AppColors.textPrimary,
-                                              fontWeight: FontWeight.w600,
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 10,
+                                              vertical: 6,
+                                            ),
+                                            decoration: BoxDecoration(
+                                              color: AppColors.backgroundBlue,
+                                              borderRadius: BorderRadius.circular(8),
+                                              border: Border.all(color: AppColors.divider),
+                                            ),
+                                            child: Row(
+                                              children: [
+                                                const Icon(
+                                                  Icons.shopping_cart_outlined,
+                                                  size: 14,
+                                                  color: AppColors.primaryBlue,
+                                                ),
+                                                const SizedBox(width: 4),
+                                                Text(
+                                                  '$itemCount ${itemCount == 1 ? 'item' : 'itens'}',
+                                                  style: const TextStyle(
+                                                    fontSize: 13,
+                                                    color: AppColors.textPrimary,
+                                                    fontWeight: FontWeight.w600,
+                                                  ),
+                                                ),
+                                              ],
                                             ),
                                           ),
-                                        ],
-                                      ),
-                                    ),
-                                    const SizedBox(width: 8),
-                                    if (completedCount > 0) ...[
-                                      Container(
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 10,
-                                          vertical: 6,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          color: completedCount == itemCount
-                                              ? AppColors.success.withOpacity(0.1)
-                                              : AppColors.warning.withOpacity(0.1),
-                                          borderRadius: BorderRadius.circular(8),
-                                          border: Border.all(
-                                            color: completedCount == itemCount
-                                                ? AppColors.success
-                                                : AppColors.warning,
-                                          ),
-                                        ),
-                                        child: Row(
-                                          children: [
-                                            Icon(
-                                              completedCount == itemCount
-                                                  ? Icons.check_circle
-                                                  : Icons.pending_outlined,
-                                              size: 14,
-                                              color: completedCount == itemCount
-                                                  ? AppColors.success
-                                                  : AppColors.warning,
-                                            ),
-                                            const SizedBox(width: 4),
-                                            Text(
-                                              completedCount == itemCount
-                                                  ? 'Completa'
-                                                  : '$completedCount/$itemCount comprados',
-                                              style: TextStyle(
-                                                fontSize: 13,
-                                                color: completedCount == itemCount
-                                                    ? AppColors.success
-                                                    : AppColors.warning,
-                                                fontWeight: FontWeight.w600,
+                                          const SizedBox(width: 8),
+                                          if (completedCount > 0)
+                                            Container(
+                                              padding: const EdgeInsets.symmetric(
+                                                horizontal: 10,
+                                                vertical: 6,
+                                              ),
+                                              decoration: BoxDecoration(
+                                                color: isCompletedPurchase
+                                                    ? AppColors.success.withOpacity(0.1)
+                                                    : AppColors.warning.withOpacity(0.1),
+                                                borderRadius: BorderRadius.circular(8),
+                                                border: Border.all(
+                                                  color: isCompletedPurchase
+                                                      ? AppColors.success
+                                                      : AppColors.warning,
+                                                ),
+                                              ),
+                                              child: Row(
+                                                children: [
+                                                  Icon(
+                                                    isCompletedPurchase
+                                                        ? Icons.check_circle
+                                                        : Icons.pending_outlined,
+                                                    size: 14,
+                                                    color: isCompletedPurchase
+                                                        ? AppColors.success
+                                                        : AppColors.warning,
+                                                  ),
+                                                  const SizedBox(width: 4),
+                                                  Text(
+                                                    isCompletedPurchase
+                                                        ? 'Completa'
+                                                        : '$completedCount/$itemCount comprados',
+                                                    style: TextStyle(
+                                                      fontSize: 13,
+                                                      color: isCompletedPurchase
+                                                          ? AppColors.success
+                                                          : AppColors.warning,
+                                                      fontWeight: FontWeight.w600,
+                                                    ),
+                                                  ),
+                                                ],
                                               ),
                                             ),
-                                          ],
-                                        ),
+                                        ],
                                       ),
                                     ],
-                                  ],
+                                  ),
                                 ),
-                              ],
+                              ),
                             ),
-                          ),
-                        ),
+                          );
+                        },
                       ),
-                    );
-                  },
+                    ),
+                  ],
                 ),
               );
             },

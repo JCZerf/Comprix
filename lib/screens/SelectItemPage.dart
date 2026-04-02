@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:market_express/utils/app_colors.dart';
 import 'package:market_express/utils/price_helper.dart';
+import 'package:market_express/utils/search_normalizer.dart';
 import 'package:market_express/widgets/comprix_app_bar.dart';
 import 'package:provider/provider.dart';
 
@@ -98,7 +99,7 @@ class _SelectItemPageState extends State<SelectItemPage> {
               ),
               onChanged: (value) {
                 setState(() {
-                  _search = value.trim().toLowerCase();
+                  _search = normalizeSearchText(value.trim());
                 });
               },
             ),
@@ -112,8 +113,10 @@ class _SelectItemPageState extends State<SelectItemPage> {
                 final availableItems = allItems
                     .where((item) => !widget.excludeItemIds.contains(item.id))
                     .where((item) {
-                      return item.name.toLowerCase().contains(_search) ||
-                          (item.category ?? '').toLowerCase().contains(_search);
+                      final normalizedName = normalizeSearchText(item.name);
+                      final normalizedCategory = normalizeSearchText(item.category ?? '');
+                      return normalizedName.contains(_search) ||
+                          normalizedCategory.contains(_search);
                     })
                     .toList();
 

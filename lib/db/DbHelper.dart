@@ -114,7 +114,10 @@ class DBHelper {
 
   static Future<List<Purchase>> getPurchases() async {
     final db = await _getDatabase();
-    final List<Map<String, dynamic>> maps = await db.query('purchases');
+    final List<Map<String, dynamic>> maps = await db.query(
+      'purchases',
+      orderBy: 'date DESC, id DESC',
+    );
     return List.generate(maps.length, (i) => Purchase.fromMap(maps[i]));
   }
 

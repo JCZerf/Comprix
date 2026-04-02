@@ -6,17 +6,25 @@ class WatermarkWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(
-            'developbyjcleite',
-            style: TextStyle(fontSize: 10, color: Colors.grey[600], fontWeight: FontWeight.w300),
+            'Developed by JCLeite',
+            style: TextStyle(
+              fontSize: 10,
+              color: Colors.grey[600],
+              fontWeight: FontWeight.w300,
+            ),
           ),
           Text(
-            'v2.0.0',
-            style: TextStyle(fontSize: 10, color: Colors.grey[600], fontWeight: FontWeight.w300),
+            'v2.1.0',
+            style: TextStyle(
+              fontSize: 10,
+              color: Colors.grey[600],
+              fontWeight: FontWeight.w300,
+            ),
           ),
         ],
       ),
