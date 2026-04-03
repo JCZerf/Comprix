@@ -13,17 +13,19 @@ class WatermarkWidget extends StatelessWidget {
           Text(
             'Developed by JCLeite',
             style: TextStyle(
-              fontSize: 10,
-              color: Colors.grey[600],
-              fontWeight: FontWeight.w300,
+              fontSize: 11,
+              color: Colors.grey[700],
+              fontWeight: FontWeight.w500,
+              letterSpacing: 0.1,
             ),
           ),
           Text(
-            'v2.1.0',
+            'v2.2.0',
             style: TextStyle(
-              fontSize: 10,
-              color: Colors.grey[600],
-              fontWeight: FontWeight.w300,
+              fontSize: 11,
+              color: Colors.grey[700],
+              fontWeight: FontWeight.w600,
+              letterSpacing: 0.15,
             ),
           ),
         ],

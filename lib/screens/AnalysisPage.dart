@@ -232,6 +232,12 @@ class _AnalysisPageState extends State<AnalysisPage> {
           (entry) => entry?.item.id == _selectedItemId,
           orElse: () => filteredEntries.isNotEmpty ? filteredEntries.first : null,
         );
+    final selectedCategory = selectedEntry == null
+        ? 'A definir'
+        : ((selectedEntry.item.category ?? '').trim().isEmpty
+              ? 'A definir'
+              : selectedEntry.item.category!.trim());
+    final selectedHistoryCount = selectedEntry?.history.length ?? 0;
     final searchSuggestions = buildItemNameSuggestions(
       _entries.map((entry) => entry.item).toList(),
       _itemSearchQuery,
@@ -280,45 +286,72 @@ class _AnalysisPageState extends State<AnalysisPage> {
                   padding: const EdgeInsets.all(16),
                   children: [
                     Container(
-                      padding: const EdgeInsets.all(16),
+                      padding: const EdgeInsets.all(18),
                       decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(14),
-                        border: Border.all(color: AppColors.divider),
+                        gradient: const LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [Color(0xFF111111), Color(0xFF2C2C2C)],
+                        ),
+                        borderRadius: BorderRadius.circular(18),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.04),
-                            blurRadius: 10,
-                            offset: const Offset(0, 3),
+                            color: Colors.black.withValues(alpha: 0.18),
+                            blurRadius: 18,
+                            offset: const Offset(0, 8),
                           ),
                         ],
                       ),
                       child: const Row(
                         children: [
-                          Icon(Icons.analytics_rounded, color: AppColors.primaryBlue, size: 26),
+                          Icon(Icons.analytics_rounded, color: Colors.white, size: 28),
                           SizedBox(width: 12),
                           Expanded(
                             child: Text(
                               'Acompanhe a diferença de preços e veja quais produtos subiram ou caíram.',
                               style: TextStyle(
-                                fontSize: 13,
-                                color: AppColors.textSecondary,
-                                fontWeight: FontWeight.w500,
+                                fontSize: 14,
+                                color: Colors.white,
+                                fontWeight: FontWeight.w600,
                               ),
                             ),
                           ),
                         ],
                       ),
                     ),
-                    const SizedBox(height: 12),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
+                    const SizedBox(height: 16),
+                    GridView.count(
+                      crossAxisCount: 2,
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      crossAxisSpacing: 10,
+                      mainAxisSpacing: 10,
+                      childAspectRatio: 2.15,
                       children: [
-                        _SummaryChip(label: 'Produtos', value: '${_entries.length}'),
-                        _SummaryChip(label: 'Subiram', value: '$increasedCount'),
-                        _SummaryChip(label: 'Caíram', value: '$decreasedCount'),
-                        _SummaryChip(label: 'Estáveis', value: '$stableCount'),
+                        _DashboardStatCard(
+                          label: 'Produtos',
+                          value: '${_entries.length}',
+                          icon: Icons.inventory_2_rounded,
+                          accentColor: const Color(0xFF334155),
+                        ),
+                        _DashboardStatCard(
+                          label: 'Subiram',
+                          value: '$increasedCount',
+                          icon: Icons.trending_up_rounded,
+                          accentColor: const Color(0xFFB91C1C),
+                        ),
+                        _DashboardStatCard(
+                          label: 'Caíram',
+                          value: '$decreasedCount',
+                          icon: Icons.trending_down_rounded,
+                          accentColor: const Color(0xFF0F766E),
+                        ),
+                        _DashboardStatCard(
+                          label: 'Estáveis',
+                          value: '$stableCount',
+                          icon: Icons.horizontal_rule_rounded,
+                          accentColor: const Color(0xFF475569),
+                        ),
                       ],
                     ),
                     const SizedBox(height: 16),
@@ -437,6 +470,118 @@ class _AnalysisPageState extends State<AnalysisPage> {
                     ),
                     if (selectedEntry != null) ...[
                       const SizedBox(height: 12),
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [Color(0xFF111111), Color(0xFF2C2C2C)],
+                          ),
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.14),
+                              blurRadius: 14,
+                              offset: const Offset(0, 6),
+                            ),
+                          ],
+                        ),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    selectedEntry.item.name,
+                                    style: const TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.w800,
+                                      color: Colors.white,
+                                      letterSpacing: -0.3,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Wrap(
+                                    spacing: 8,
+                                    runSpacing: 8,
+                                    children: [
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 10,
+                                          vertical: 5,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: Colors.white.withValues(
+                                            alpha: 0.12,
+                                          ),
+                                          borderRadius: BorderRadius.circular(
+                                            999,
+                                          ),
+                                          border: Border.all(
+                                            color: Colors.white.withValues(
+                                              alpha: 0.2,
+                                            ),
+                                          ),
+                                        ),
+                                        child: Text(
+                                          selectedCategory,
+                                          style: const TextStyle(
+                                            fontSize: 12,
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                      ),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 10,
+                                          vertical: 5,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: Colors.white.withValues(
+                                            alpha: 0.12,
+                                          ),
+                                          borderRadius: BorderRadius.circular(
+                                            999,
+                                          ),
+                                          border: Border.all(
+                                            color: Colors.white.withValues(
+                                              alpha: 0.2,
+                                            ),
+                                          ),
+                                        ),
+                                        child: Text(
+                                          '$selectedHistoryCount registro${selectedHistoryCount == 1 ? '' : 's'}',
+                                          style: const TextStyle(
+                                            fontSize: 12,
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Container(
+                              padding: const EdgeInsets.all(10),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withValues(alpha: 0.15),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: const Icon(
+                                Icons.insights_rounded,
+                                color: Colors.white,
+                                size: 24,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 10),
                       Row(
                         children: [
                           Expanded(
@@ -445,6 +590,8 @@ class _AnalysisPageState extends State<AnalysisPage> {
                               value: PriceHelper.centavosToFormattedString(
                                 selectedEntry.firstPriceCentavos,
                               ),
+                              icon: Icons.flag_rounded,
+                              accentColor: const Color(0xFF64748B),
                             ),
                           ),
                           const SizedBox(width: 8),
@@ -454,6 +601,8 @@ class _AnalysisPageState extends State<AnalysisPage> {
                               value: PriceHelper.centavosToFormattedString(
                                 selectedEntry.currentPriceCentavos,
                               ),
+                              icon: Icons.payments_rounded,
+                              accentColor: const Color(0xFF111111),
                             ),
                           ),
                         ],
@@ -462,16 +611,29 @@ class _AnalysisPageState extends State<AnalysisPage> {
                       Container(
                         padding: const EdgeInsets.all(14),
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: _deltaColor(
+                            selectedEntry.deltaCentavos,
+                          ).withValues(alpha: 0.08),
                           borderRadius: BorderRadius.circular(14),
-                          border: Border.all(color: AppColors.divider),
+                          border: Border.all(
+                            color: _deltaColor(
+                              selectedEntry.deltaCentavos,
+                            ).withValues(alpha: 0.35),
+                          ),
                         ),
                         child: Row(
                           children: [
-                            Icon(
-                              _deltaIcon(selectedEntry.deltaCentavos),
-                              color: _deltaColor(selectedEntry.deltaCentavos),
-                              size: 24,
+                            Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withValues(alpha: 0.75),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: Icon(
+                                _deltaIcon(selectedEntry.deltaCentavos),
+                                color: _deltaColor(selectedEntry.deltaCentavos),
+                                size: 22,
+                              ),
                             ),
                             const SizedBox(width: 10),
                             Expanded(
@@ -490,12 +652,30 @@ class _AnalysisPageState extends State<AnalysisPage> {
                                   Text(
                                     '${_formatDelta(selectedEntry.deltaCentavos)} (${_formatPercent(selectedEntry.deltaPercent)})',
                                     style: TextStyle(
-                                      fontSize: 16,
+                                      fontSize: 17,
                                       color: _deltaColor(selectedEntry.deltaCentavos),
                                       fontWeight: FontWeight.w800,
                                     ),
                                   ),
                                 ],
+                              ),
+                            ),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 6,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withValues(alpha: 0.75),
+                                borderRadius: BorderRadius.circular(999),
+                              ),
+                              child: Text(
+                                _formatPercent(selectedEntry.deltaPercent),
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: _deltaColor(selectedEntry.deltaCentavos),
+                                  fontWeight: FontWeight.w800,
+                                ),
                               ),
                             ),
                           ],
@@ -512,13 +692,32 @@ class _AnalysisPageState extends State<AnalysisPage> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text(
-                              'Histórico de preços',
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: AppColors.textPrimary,
-                                fontWeight: FontWeight.w700,
-                              ),
+                            Row(
+                              children: [
+                                const Icon(
+                                  Icons.timeline_rounded,
+                                  color: AppColors.textPrimary,
+                                  size: 18,
+                                ),
+                                const SizedBox(width: 8),
+                                const Text(
+                                  'Histórico de preços',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: AppColors.textPrimary,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                                const Spacer(),
+                                Text(
+                                  'Últimos ${selectedEntry.history.length >= 8 ? '8' : selectedEntry.history.length}',
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    color: AppColors.textSecondary,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
                             ),
                             const SizedBox(height: 10),
                             if (selectedEntry.history.isEmpty)
@@ -530,27 +729,40 @@ class _AnalysisPageState extends State<AnalysisPage> {
                               ...selectedEntry.history.take(8).map(
                                 (point) => Padding(
                                   padding: const EdgeInsets.only(bottom: 8),
-                                  child: Row(
-                                    children: [
-                                      Expanded(
-                                        child: Text(
-                                          _formatShortDate(point.date),
-                                          style: const TextStyle(
-                                            fontSize: 13,
-                                            color: AppColors.textSecondary,
-                                            fontWeight: FontWeight.w600,
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 10,
+                                      vertical: 9,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.backgroundBlue,
+                                      borderRadius: BorderRadius.circular(10),
+                                      border: Border.all(color: AppColors.divider),
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        Expanded(
+                                          child: Text(
+                                            _formatShortDate(point.date),
+                                            style: const TextStyle(
+                                              fontSize: 13,
+                                              color: AppColors.textSecondary,
+                                              fontWeight: FontWeight.w600,
+                                            ),
                                           ),
                                         ),
-                                      ),
-                                      Text(
-                                        PriceHelper.centavosToFormattedString(point.priceCentavos),
-                                        style: const TextStyle(
-                                          fontSize: 14,
-                                          color: AppColors.textPrimary,
-                                          fontWeight: FontWeight.w700,
+                                        Text(
+                                          PriceHelper.centavosToFormattedString(
+                                            point.priceCentavos,
+                                          ),
+                                          style: const TextStyle(
+                                            fontSize: 14,
+                                            color: AppColors.textPrimary,
+                                            fontWeight: FontWeight.w700,
+                                          ),
                                         ),
-                                      ),
-                                    ],
+                                      ],
+                                    ),
                                   ),
                                 ),
                               ),
@@ -584,42 +796,72 @@ class _AnalysisPageState extends State<AnalysisPage> {
   }
 }
 
-class _SummaryChip extends StatelessWidget {
+class _DashboardStatCard extends StatelessWidget {
   final String label;
   final String value;
+  final IconData icon;
+  final Color accentColor;
 
-  const _SummaryChip({
+  const _DashboardStatCard({
     required this.label,
     required this.value,
+    required this.icon,
+    required this.accentColor,
   });
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(999),
+        borderRadius: BorderRadius.circular(14),
         border: Border.all(color: AppColors.divider),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Row(
-        mainAxisSize: MainAxisSize.min,
         children: [
-          Text(
-            label,
-            style: const TextStyle(
-              fontSize: 12,
-              color: AppColors.textSecondary,
-              fontWeight: FontWeight.w600,
+          Container(
+            padding: const EdgeInsets.all(6),
+            decoration: BoxDecoration(
+              color: accentColor.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(
+              icon,
+              size: 16,
+              color: accentColor,
             ),
           ),
-          const SizedBox(width: 6),
-          Text(
-            value,
-            style: const TextStyle(
-              fontSize: 13,
-              color: AppColors.textPrimary,
-              fontWeight: FontWeight.w800,
+          const SizedBox(width: 8),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  label,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: AppColors.textSecondary,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                Text(
+                  value,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    color: AppColors.textPrimary,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ],
             ),
           ),
         ],
@@ -631,10 +873,14 @@ class _SummaryChip extends StatelessWidget {
 class _MetricCard extends StatelessWidget {
   final String label;
   final String value;
+  final IconData icon;
+  final Color accentColor;
 
   const _MetricCard({
     required this.label,
     required this.value,
+    required this.icon,
+    required this.accentColor,
   });
 
   @override
@@ -645,23 +891,49 @@ class _MetricCard extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: AppColors.divider),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            label,
-            style: const TextStyle(
-              fontSize: 12,
-              color: AppColors.textSecondary,
-              fontWeight: FontWeight.w600,
-            ),
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(5),
+                decoration: BoxDecoration(
+                  color: accentColor.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(
+                  icon,
+                  size: 14,
+                  color: accentColor,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  label,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: AppColors.textSecondary,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 3),
+          const SizedBox(height: 6),
           Text(
             value,
             style: const TextStyle(
-              fontSize: 15,
+              fontSize: 17,
               color: AppColors.textPrimary,
               fontWeight: FontWeight.w800,
             ),
