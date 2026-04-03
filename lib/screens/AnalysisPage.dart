@@ -472,8 +472,10 @@ class _AnalysisPageState extends State<AnalysisPage> {
                             ),
                             onChanged: (value) =>
                                 _onSearchChanged(value),
-                            onSubmitted: (value) =>
-                                _applySearchQuery(value, showSuggestions: false),
+                            onSubmitted: (value) {
+                              _applySearchQuery(value, showSuggestions: false);
+                              _closeSearchKeyboard();
+                            },
                             onTap: _ensureSearchSectionVisible,
                           ),
                           SearchSuggestionsPanel(
@@ -491,6 +493,7 @@ class _AnalysisPageState extends State<AnalysisPage> {
                                 preferExactName: true,
                                 showSuggestions: false,
                               );
+                              _closeSearchKeyboard();
                             },
                           ),
                           SizedBox(key: _searchBottomKey),
@@ -875,6 +878,10 @@ class _AnalysisPageState extends State<AnalysisPage> {
     if (_itemSearchFocusNode.hasFocus) {
       _ensureSearchSectionVisible();
     }
+  }
+
+  void _closeSearchKeyboard() {
+    FocusManager.instance.primaryFocus?.unfocus();
   }
 }
 
