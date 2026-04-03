@@ -54,19 +54,62 @@ class _AnalysisPageState extends State<AnalysisPage> {
   List<_PriceAnalysisEntry> _entries = [];
   int? _selectedItemId;
   final TextEditingController _itemSearchController = TextEditingController();
+  final FocusNode _itemSearchFocusNode = FocusNode();
+  final ScrollController _scrollController = ScrollController();
+  final GlobalKey _searchSectionKey = GlobalKey();
+  final GlobalKey _searchBottomKey = GlobalKey();
   String _itemSearchQuery = '';
   bool _showSearchSuggestions = true;
+  bool _isSearchFieldFocused = false;
 
   @override
   void initState() {
     super.initState();
+    _itemSearchFocusNode.addListener(_onSearchFocusChanged);
     _loadDashboardData();
   }
 
   @override
   void dispose() {
+    _itemSearchFocusNode.removeListener(_onSearchFocusChanged);
+    _itemSearchFocusNode.dispose();
+    _scrollController.dispose();
     _itemSearchController.dispose();
     super.dispose();
+  }
+
+  void _onSearchFocusChanged() {
+    if (!mounted) return;
+    setState(() {
+      _isSearchFieldFocused = _itemSearchFocusNode.hasFocus;
+    });
+
+    if (_itemSearchFocusNode.hasFocus) {
+      _ensureSearchSectionVisible();
+    }
+  }
+
+  void _ensureSearchSectionVisible() {
+    void ensure() {
+      if (!mounted) return;
+      final context =
+          _searchBottomKey.currentContext ?? _searchSectionKey.currentContext;
+      if (context == null) return;
+      Scrollable.ensureVisible(
+        context,
+        duration: const Duration(milliseconds: 250),
+        curve: Curves.easeOutCubic,
+        alignment: 1,
+      );
+    }
+
+    WidgetsBinding.instance.addPostFrameCallback((_) => ensure());
+    for (final delayMs in const [120, 260, 420, 620]) {
+      Future<void>.delayed(Duration(milliseconds: delayMs), () {
+        if (!mounted || !_itemSearchFocusNode.hasFocus) return;
+        ensure();
+      });
+    }
   }
 
   String _formatShortDate(DateTime value) {
@@ -131,7 +174,7 @@ class _AnalysisPageState extends State<AnalysisPage> {
       return currentSelectedId;
     }
 
-    return visibleEntries.first.item.id;
+    return null;
   }
 
   void _applySearchQuery(
@@ -139,11 +182,11 @@ class _AnalysisPageState extends State<AnalysisPage> {
     bool preferExactName = false,
     bool showSuggestions = true,
   }) {
+    final normalizedValue = normalizeSearchText(value.trim());
     final visibleEntries = _filterEntriesByQuery(_entries, value);
     int? preferredId;
 
     if (preferExactName) {
-      final normalizedValue = normalizeSearchText(value.trim());
       if (normalizedValue.isNotEmpty) {
         for (final entry in visibleEntries) {
           if (normalizeSearchText(entry.item.name) == normalizedValue) {
@@ -157,11 +200,13 @@ class _AnalysisPageState extends State<AnalysisPage> {
     setState(() {
       _itemSearchQuery = value;
       _showSearchSuggestions = showSuggestions;
-      _selectedItemId = _resolveSelectedItemId(
-        visibleEntries,
-        _selectedItemId,
-        preferredId: preferredId,
-      );
+      _selectedItemId = normalizedValue.isEmpty
+          ? null
+          : _resolveSelectedItemId(
+              visibleEntries,
+              _selectedItemId,
+              preferredId: preferredId,
+            );
     });
   }
 
@@ -213,8 +258,13 @@ class _AnalysisPageState extends State<AnalysisPage> {
       if (!mounted) return;
       setState(() {
         _entries = entries;
-        final visibleEntries = _filterEntriesByQuery(_entries, _itemSearchQuery);
-        _selectedItemId = _resolveSelectedItemId(visibleEntries, _selectedItemId);
+        final hasActiveQuery = normalizeSearchText(_itemSearchQuery.trim()).isNotEmpty;
+        if (!hasActiveQuery) {
+          _selectedItemId = null;
+        } else {
+          final visibleEntries = _filterEntriesByQuery(_entries, _itemSearchQuery);
+          _selectedItemId = _resolveSelectedItemId(visibleEntries, _selectedItemId);
+        }
       });
     } finally {
       if (mounted) {
@@ -227,10 +277,12 @@ class _AnalysisPageState extends State<AnalysisPage> {
 
   @override
   Widget build(BuildContext context) {
+    final keyboardInset = MediaQuery.viewInsetsOf(context).bottom;
+    final isKeyboardOpen = keyboardInset > 0;
     final filteredEntries = _filterEntriesByQuery(_entries, _itemSearchQuery);
     final selectedEntry = filteredEntries.cast<_PriceAnalysisEntry?>().firstWhere(
           (entry) => entry?.item.id == _selectedItemId,
-          orElse: () => filteredEntries.isNotEmpty ? filteredEntries.first : null,
+          orElse: () => null,
         );
     final selectedCategory = selectedEntry == null
         ? 'A definir'
@@ -283,7 +335,14 @@ class _AnalysisPageState extends State<AnalysisPage> {
                 onRefresh: _loadDashboardData,
                 color: AppColors.primaryBlue,
                 child: ListView(
-                  padding: const EdgeInsets.all(16),
+                  controller: _scrollController,
+                  keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+                  padding: EdgeInsets.fromLTRB(
+                    16,
+                    16,
+                    16,
+                    16 + keyboardInset + (_isSearchFieldFocused ? 120 : 0),
+                  ),
                   children: [
                     Container(
                       padding: const EdgeInsets.all(18),
@@ -356,6 +415,7 @@ class _AnalysisPageState extends State<AnalysisPage> {
                     ),
                     const SizedBox(height: 16),
                     Container(
+                      key: _searchSectionKey,
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
                         color: Colors.white,
@@ -376,6 +436,7 @@ class _AnalysisPageState extends State<AnalysisPage> {
                           const SizedBox(height: 8),
                           TextField(
                             controller: _itemSearchController,
+                            focusNode: _itemSearchFocusNode,
                             decoration: InputDecoration(
                               hintText: 'Digite nome ou categoria',
                               prefixIcon: const Icon(
@@ -410,9 +471,10 @@ class _AnalysisPageState extends State<AnalysisPage> {
                               ),
                             ),
                             onChanged: (value) =>
-                                _applySearchQuery(value, showSuggestions: true),
+                                _onSearchChanged(value),
                             onSubmitted: (value) =>
                                 _applySearchQuery(value, showSuggestions: false),
+                            onTap: _ensureSearchSectionVisible,
                           ),
                           SearchSuggestionsPanel(
                             suggestions: _showSearchSuggestions
@@ -431,6 +493,7 @@ class _AnalysisPageState extends State<AnalysisPage> {
                               );
                             },
                           ),
+                          SizedBox(key: _searchBottomKey),
                           if (_itemSearchQuery.trim().isNotEmpty) ...[
                             const SizedBox(height: 8),
                             Text(
@@ -438,6 +501,17 @@ class _AnalysisPageState extends State<AnalysisPage> {
                                   ? 'Nenhum item encontrado para esta pesquisa'
                                   : '${filteredEntries.length} item${filteredEntries.length == 1 ? '' : 's'} encontrado${filteredEntries.length == 1 ? '' : 's'}',
                               style: const TextStyle(
+                                fontSize: 12,
+                                color: AppColors.textSecondary,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                          if (_itemSearchQuery.trim().isEmpty) ...[
+                            const SizedBox(height: 8),
+                            const Text(
+                              'Pesquise um produto para exibir a análise.',
+                              style: TextStyle(
                                 fontSize: 12,
                                 color: AppColors.textSecondary,
                                 fontWeight: FontWeight.w500,
@@ -775,6 +849,7 @@ class _AnalysisPageState extends State<AnalysisPage> {
               );
 
     return Scaffold(
+      resizeToAvoidBottomInset: true,
       appBar: ComprixAppBar(
         title: ComprixAppBar.titleText('Análise', fontSize: 22),
         actions: [
@@ -789,10 +864,17 @@ class _AnalysisPageState extends State<AnalysisPage> {
       body: Column(
         children: [
           Expanded(child: bodyContent),
-          const WatermarkWidget(),
+          if (!isKeyboardOpen && !_isSearchFieldFocused) const WatermarkWidget(),
         ],
       ),
     );
+  }
+
+  void _onSearchChanged(String value) {
+    _applySearchQuery(value, showSuggestions: true);
+    if (_itemSearchFocusNode.hasFocus) {
+      _ensureSearchSectionVisible();
+    }
   }
 }
 
