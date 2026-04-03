@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../db/DbHelper.dart';
 import '../models/ItemMarketModel.dart';
+import '../utils/search_normalizer.dart';
 
 class MarketItemController extends ChangeNotifier {
   List<MarketItem> _items = [];
@@ -9,6 +10,7 @@ class MarketItemController extends ChangeNotifier {
   String _searchQuery = '';
 
   List<MarketItem> get items => _searchQuery.isEmpty ? _items : _filteredItems;
+  List<MarketItem> get allItems => _items;
   String get searchQuery => _searchQuery;
 
   Future<void> loadItems() async {
@@ -38,7 +40,7 @@ class MarketItemController extends ChangeNotifier {
   }
 
   void searchItems(String query) {
-    _searchQuery = query.toLowerCase();
+    _searchQuery = normalizeSearchText(query.trim());
     _filterItems();
     notifyListeners();
   }
@@ -48,7 +50,12 @@ class MarketItemController extends ChangeNotifier {
       _filteredItems = [];
     } else {
       _filteredItems = _items.where((item) {
-        return item.name.toLowerCase().contains(_searchQuery);
+        final normalizedName = normalizeSearchText(item.name);
+        final normalizedCategory = normalizeSearchText(item.category ?? '');
+        final normalizedDescription = normalizeSearchText(item.description ?? '');
+        return normalizedName.contains(_searchQuery) ||
+            normalizedCategory.contains(_searchQuery) ||
+            normalizedDescription.contains(_searchQuery);
       }).toList();
     }
   }

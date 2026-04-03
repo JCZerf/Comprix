@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:market_express/controllers/ItemMarketController.dart';
 import 'package:market_express/controllers/ItemPriceController.dart';
 import 'package:market_express/models/ItemMarketModel.dart';
-import 'package:market_express/screens/PriceUpdatePage.dart';
 import 'package:market_express/services/LoadCategories.dart';
 import 'package:market_express/utils/app_colors.dart';
+import 'package:market_express/utils/variable_price_categories.dart';
+import 'package:market_express/widgets/comprix_app_bar.dart';
 import 'package:market_express/widgets/price_form_field.dart';
 import 'package:provider/provider.dart';
 
@@ -37,6 +38,9 @@ class _ItemDetailPageState extends State<ItemDetailPage> with SingleTickerProvid
     quantity = widget.item.quantity;
     description = widget.item.description ?? '';
     category = widget.item.category ?? '';
+    if (isVariablePriceCategory(category)) {
+      priceCentavos = 0;
+    }
     _loadCategories();
 
     _animationController = AnimationController(
@@ -75,17 +79,10 @@ class _ItemDetailPageState extends State<ItemDetailPage> with SingleTickerProvid
 
   @override
   Widget build(BuildContext context) {
+    final isVariablePrice = isVariablePriceCategory(category);
     return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          'Detalhes do Item',
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
-        ),
-        backgroundColor: AppColors.primaryBlue,
-        elevation: 0,
-        flexibleSpace: Container(
-          decoration: const BoxDecoration(gradient: AppColors.primaryGradient),
-        ),
+      appBar: ComprixAppBar(
+        title: ComprixAppBar.titleText('Detalhes do Item'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_rounded),
           onPressed: () => Navigator.pop(context),
@@ -113,7 +110,7 @@ class _ItemDetailPageState extends State<ItemDetailPage> with SingleTickerProvid
                         Navigator.pop(context); // Fecha o dialog
                         Navigator.pop(context); // Volta para a homepage
                       },
-                      child: const Text('Excluir', style: TextStyle(color: Colors.red)),
+                      child: const Text('Excluir', style: TextStyle(color: AppColors.textPrimary)),
                     ),
                   ],
                 ),
@@ -250,14 +247,33 @@ class _ItemDetailPageState extends State<ItemDetailPage> with SingleTickerProvid
                                         Expanded(
                                           child: _buildFormField(
                                             child: PriceFormField(
-                                              labelText: 'Preço *',
-                                              hintText: '0,00',
-                                              initialCentavos: priceCentavos,
-                                              onSaved: (centavos) => priceCentavos = centavos,
+                                              key: ValueKey(
+                                                'edit-price-${category}_$isVariablePrice',
+                                              ),
+                                              labelText: isVariablePrice
+                                                  ? 'Preço (na compra)'
+                                                  : 'Preço *',
+                                              hintText: isVariablePrice
+                                                  ? 'Definido ao marcar comprado'
+                                                  : '0,00',
+                                              initialCentavos: !isVariablePrice &&
+                                                      priceCentavos > 0
+                                                  ? priceCentavos
+                                                  : null,
+                                              enabled: !isVariablePrice,
+                                              onSaved: (centavos) =>
+                                                  priceCentavos =
+                                                      isVariablePrice
+                                                      ? 0
+                                                      : centavos,
                                               validator: (value) => null,
                                               decoration: InputDecoration(
-                                                labelText: 'Preço *',
-                                                hintText: '0,00',
+                                                labelText: isVariablePrice
+                                                    ? 'Preço (na compra)'
+                                                    : 'Preço *',
+                                                hintText: isVariablePrice
+                                                    ? 'Definido ao marcar comprado'
+                                                    : '0,00',
                                                 prefixIcon: const Icon(
                                                   Icons.attach_money_rounded,
                                                   color: AppColors.success,
@@ -278,7 +294,9 @@ class _ItemDetailPageState extends State<ItemDetailPage> with SingleTickerProvid
                                                   ),
                                                 ),
                                                 filled: true,
-                                                fillColor: Colors.white,
+                                                fillColor: isVariablePrice
+                                                    ? Colors.grey[100]
+                                                    : Colors.white,
                                               ),
                                             ),
                                           ),
@@ -323,6 +341,48 @@ class _ItemDetailPageState extends State<ItemDetailPage> with SingleTickerProvid
                                         ),
                                       ],
                                     ),
+                                    if (isVariablePrice)
+                                      Padding(
+                                        padding: const EdgeInsets.only(
+                                          left: 2,
+                                          right: 2,
+                                          bottom: 18,
+                                        ),
+                                        child: Container(
+                                          width: double.infinity,
+                                          padding: const EdgeInsets.all(10),
+                                          decoration: BoxDecoration(
+                                            color: AppColors.backgroundBlue,
+                                            borderRadius: BorderRadius.circular(
+                                              10,
+                                            ),
+                                            border: Border.all(
+                                              color: AppColors.divider,
+                                            ),
+                                          ),
+                                          child: const Row(
+                                            children: [
+                                              Icon(
+                                                Icons.scale_rounded,
+                                                size: 16,
+                                                color: AppColors.textSecondary,
+                                              ),
+                                              SizedBox(width: 8),
+                                              Expanded(
+                                                child: Text(
+                                                  'Preço variável: este item será precificado ao concluir a compra.',
+                                                  style: TextStyle(
+                                                    fontSize: 12,
+                                                    color:
+                                                        AppColors.textSecondary,
+                                                    fontWeight: FontWeight.w600,
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
 
                                     // Descrição
                                     _buildFormField(
@@ -396,64 +456,17 @@ class _ItemDetailPageState extends State<ItemDetailPage> with SingleTickerProvid
                                                   DropdownMenuItem(value: cat, child: Text(cat)),
                                             )
                                             .toList(),
-                                        onChanged: (value) =>
-                                            setState(() => category = value ?? ''),
+                                        onChanged: (value) => setState(() {
+                                          category = value ?? '';
+                                          if (isVariablePriceCategory(value)) {
+                                            priceCentavos = 0;
+                                          }
+                                        }),
                                         validator: (value) => null,
                                       ),
                                     ),
 
-                                    // Botão de atualizar preço
-                                    Container(
-                                      margin: const EdgeInsets.only(top: 4),
-                                      child: SizedBox(
-                                        width: double.infinity,
-                                        height: 52,
-                                        child: OutlinedButton.icon(
-                                          style: OutlinedButton.styleFrom(
-                                            foregroundColor: AppColors.primaryBlue,
-                                            side: const BorderSide(
-                                              color: AppColors.primaryBlue,
-                                              width: 1.5,
-                                            ),
-                                            shape: RoundedRectangleBorder(
-                                              borderRadius: BorderRadius.circular(14),
-                                            ),
-                                            backgroundColor: AppColors.primaryBlue.withOpacity(
-                                              0.05,
-                                            ),
-                                          ),
-                                          onPressed: () async {
-                                            final updatedPrice = await Navigator.push<double>(
-                                              context,
-                                              MaterialPageRoute(
-                                                builder: (_) => ChangeNotifierProvider(
-                                                  create: (_) => ItemPriceController(),
-                                                  child: PriceUpdatePage(item: widget.item),
-                                                ),
-                                              ),
-                                            );
-
-                                            if (updatedPrice != null) {
-                                              final newPriceCentavos = (updatedPrice * 100).round();
-                                              setState(() {
-                                                priceCentavos = newPriceCentavos;
-                                              });
-                                              // A atualização no banco já foi feita pelo PriceUpdatePage
-                                            }
-                                          },
-                                          icon: const Icon(Icons.price_change_rounded, size: 22),
-                                          label: const Text(
-                                            'Atualizar Preço e Ver Histórico',
-                                            style: TextStyle(
-                                              fontSize: 14,
-                                              fontWeight: FontWeight.w600,
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-
-                                    const SizedBox(height: 80),
+                                    const SizedBox(height: 24),
                                   ],
                                 ),
                               ),
@@ -525,13 +538,32 @@ class _ItemDetailPageState extends State<ItemDetailPage> with SingleTickerProvid
                                       category: category,
                                     );
 
-                                    await Provider.of<MarketItemController>(
-                                      context,
-                                      listen: false,
-                                    ).updateItem(updatedItem);
+                                    try {
+                                      // If price changed, update price + history
+                                      if (!isVariablePriceCategory(category) &&
+                                          widget.item.id != null &&
+                                          (widget.item.priceCentavos ?? 0) != priceCentavos) {
+                                        await Provider.of<ItemPriceController>(
+                                          context,
+                                          listen: false,
+                                        ).updateItemPrice(widget.item.id!, priceCentavos / 100.0);
+                                      }
 
-                                    if (mounted) {
-                                      Navigator.pop(context);
+                                      // Update other item fields (name, qty, description, category)
+                                      await Provider.of<MarketItemController>(
+                                        context,
+                                        listen: false,
+                                      ).updateItem(updatedItem);
+
+                                      if (mounted) Navigator.pop(context);
+                                    } catch (e) {
+                                      if (mounted) {
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          SnackBar(
+                                            content: Text('Erro ao salvar: ${e.toString()}'),
+                                          ),
+                                        );
+                                      }
                                     }
                                   }
                                 },

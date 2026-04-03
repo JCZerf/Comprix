@@ -1,267 +1,232 @@
-# 🛒 Market Express
+# Comprix
 
-**Market Express** é um aplicativo móvel completo desenvolvido em Flutter para gerenciamento inteligente de listas de compras e controle de preços. O app oferece uma experiência moderna e intuitiva para organizar suas compras, acompanhar variações de preços e manter um histórico detalhado dos seus gastos.
+Aplicativo Flutter para gestão de itens, execução de compras e análise de variação de preços.
 
-## 📱 Capturas de Tela
+Versão atual do app: `2.2.0`.
 
+## Escopo do produto
 
-<img width="1080" height="2400" alt="Screenshot_1762215655" src="https://github.com/user-attachments/assets/bbe12b17-7ca3-46bd-b14a-417c58234cd3" />
+O aplicativo está organizado em três áreas principais:
 
-<img width="1080" height="2400" alt="Screenshot_1762215666" src="https://github.com/user-attachments/assets/03e4e116-7833-4968-9475-a3ac86b53b5b" />
+- `Lista` (`HomePage`): cadastro e manutenção de itens.
+- `Compras` (`PurchasesListPage` + `Shopping_page`): criação de listas e fluxo de compra no mercado.
+- `Análise` (`AnalysisPage`): acompanhamento de histórico e variação de preços por item.
 
-<img width="1080" height="2400" alt="Screenshot_1762215670" src="https://github.com/user-attachments/assets/239bbb3f-d50e-4289-a90c-22e878e43a04" />
+## Funcionalidades
 
-<img width="1080" height="2400" alt="Screenshot_1762215674" src="https://github.com/user-attachments/assets/ac2e22cc-c386-4e90-8636-6c3279c36177" />
+### Cadastro de itens
 
+- Cadastro, edição e remoção de itens.
+- Campos: nome, quantidade, preço, descrição e categoria.
+- Feedback de duplicidade durante digitação do nome.
+- Busca normalizada (case-insensitive e sem sensibilidade a acentos).
+- Sugestões de busca com controle de abertura/fechamento:
+  - fecha ao confirmar busca
+  - fecha ao tocar em sugestão
+  - reabre ao editar o texto
+- Ordenação na lista principal:
+  - Alfabética (padrão)
+  - Por categoria
+  - Por preço (maior primeiro)
+  - Por quantidade (maior primeiro)
 
-## ✨ Funcionalidades Principais
+### Fluxo de compras
 
-### 🏠 **Gestão de Produtos**
-- ✅ **Lista de Produtos**: Visualize todos os seus produtos em uma interface moderna e organizada
-- ✅ **Busca Inteligente**: Encontre produtos rapidamente usando a barra de pesquisa em tempo real
-- ✅ **Adicionar Produtos**: Cadastre novos produtos com nome, preço, quantidade, descrição e categoria
-- ✅ **Editar Produtos**: Modifique informações de produtos existentes
-- ✅ **Categorização**: Organize produtos por categorias predefinidas
-- ✅ **Controle de Preços**: Acompanhe o histórico de preços de cada produto
+- Criação de compra com base em itens já cadastrados.
+- Inclusão de item na compra por dois caminhos:
+  - Selecionar item existente (multi-seleção)
+  - Criar novo item
+- Tela de shopping com marcação de itens comprados.
+- Controle de exibição de itens comprados (mostrar/ocultar).
+- Ordenação na tela de shopping:
+  - Alfabética
+  - Por categoria
+- Busca com sugestões dentro da compra.
+- Opção de atualizar preço ao concluir item.
 
-### 🛍️ **Sistema de Compras**
-- ✅ **Criar Lista de Compras**: Monte listas personalizadas selecionando produtos existentes
-- ✅ **Modo Shopping**: Interface otimizada para usar durante as compras
-- ✅ **Marcar Items**: Marque produtos como adicionados ao carrinho
-- ✅ **Cálculo Automático**: Total da compra calculado automaticamente
-- ✅ **Histórico de Compras**: Mantenha um registro completo de todas as suas compras
+### Categorias com preço variável
 
-### 📊 **Controle Financeiro**
-- ✅ **Histórico de Preços**: Acompanhe a evolução dos preços dos produtos
-- ✅ **Cálculos Precisos**: Sistema de preços em centavos para máxima precisão
-- ✅ **Relatórios**: Visualize gastos por compra e período
+Itens de categorias voláteis podem ser tratados como “preço na compra”.
 
-### 🎨 **Interface e Experiência**
-- ✅ **Design Moderno**: Interface clean e intuitiva seguindo Material Design
-- ✅ **Navegação por Abas**: Acesso rápido entre lista de produtos e histórico de compras
-- ✅ **Feedback Visual**: Animações e transições suaves
-- ✅ **Estados de Carregamento**: Indicadores visuais durante operações
-- ✅ **Confirmações**: Diálogos de confirmação para ações críticas
+Regra implementada em `lib/utils/variable_price_categories.dart`:
 
-## 🛠️ Tecnologias Utilizadas
+- Chaves diretas:
+  - `hortifruti`
+  - `carnes`
+  - `carnes e frios` (compatibilidade legado)
+  - `produtos naturais e organicos` (compatibilidade legado)
+- Fallback por palavras-chave (`carne`, `frio`, `verdura`, `legume`, `fruta`, etc.).
 
-### **Frontend**
-- **Flutter** (SDK ^3.8.1) - Framework multiplataforma
-- **Dart** - Linguagem de programação
-- **Material Design** - Sistema de design do Google
+### Análise de preços
 
-### **Gerenciamento de Estado**
-- **Provider** (^6.1.5+1) - Padrão de arquitetura reativa
+- Seleção de item por pesquisa (sem dropdown).
+- Resumo em cards:
+  - Produtos monitorados
+  - Itens com aumento
+  - Itens com queda
+  - Itens estáveis
+- Métricas por item:
+  - Preço inicial
+  - Preço atual
+  - Diferença acumulada e percentual
+- Lista de histórico recente de preços.
 
-### **Banco de Dados**
-- **SQLite** via **sqflite** (^2.4.2) - Banco de dados local
+## Stack técnica
 
-### **Dependências Principais**
-- **intl** (^0.19.0) - Formatação de datas e números
-- **currency_text_input_formatter** (^2.1.10) - Formatação de valores monetários
-- **flutter_launcher_icons** (^0.14.4) - Geração de ícones do app
+- Flutter (Dart)
+- Provider (gerenciamento de estado)
+- SQLite via `sqflite`
+- `intl`
+- `currency_text_input_formatter`
 
-## 🏗️ Arquitetura do Projeto
+## Arquitetura
 
-```
+Estrutura em camadas, com separação prática por responsabilidade:
+
+- `models/`: entidades de domínio
+- `controllers/`: estado e orquestração (`ChangeNotifier`)
+- `db/`: persistência e migração (`DBHelper`)
+- `screens/`: composição de telas
+- `widgets/`: componentes reutilizáveis
+- `utils/`: normalização, formatação, estilo e heurísticas
+- `services/`: serviços de apoio (ex.: carga de categorias)
+
+Entrada da aplicação (`main.dart`) usando `MultiProvider` com:
+
+- `MarketItemController`
+- `PurchaseController`
+- `ItemPriceController`
+
+## Estrutura do repositório
+
+```text
 lib/
-├── controllers/          # Gerenciamento de estado
-│   ├── ItemMarketController.dart
-│   ├── ItemPriceController.dart
-│   └── PurchasesController.dart
-├── db/                   # Camada de dados
-│   └── DbHelper.dart
-├── models/               # Modelos de dados
-│   ├── ItemMarketModel.dart
-│   └── PurchaseModel.dart
-├── screens/              # Telas do aplicativo
-│   ├── HomePage.dart
-│   ├── AddItemPage.dart
-│   ├── ItemDetailsPage.dart
-│   ├── PriceUpdatePage.dart
-│   ├── CreatePurchasePage.dart
-│   ├── PurchasesListPage.dart
-│   ├── SelectItemPage.dart
-│   ├── Shopping_page.dart
-│   └── MainNavigation.dart
-├── services/             # Serviços auxiliares
-│   └── LoadCategories.dart
-├── utils/                # Utilitários
-│   ├── price_helper.dart
-│   └── watermark_widget.dart
-├── widgets/              # Componentes reutilizáveis
-│   └── price_form_field.dart
-└── main.dart            # Ponto de entrada
+  controllers/
+  db/
+  models/
+  screens/
+  services/
+  utils/
+  widgets/
+  main.dart
+assets/
+  category.JSON
+  img/
 ```
 
-### **Padrões Utilizados**
-- **MVC (Model-View-Controller)**: Separação clara de responsabilidades
-- **Provider Pattern**: Gerenciamento de estado reativo
-- **Repository Pattern**: Abstração da camada de dados
-- **Singleton Pattern**: Instância única do helper de banco de dados
+## Banco de dados
 
-## 🚀 Como Executar o Projeto
+Arquivo responsável: `lib/db/DbHelper.dart`.
 
-### **Pré-requisitos**
-- Flutter SDK (^3.8.1)
-- Dart SDK
-- Android Studio / VS Code
+- Nome do banco: `market_express.db`
+- Versão de schema atual: `5`
+
+Tabelas:
+
+- `items`
+  - `id INTEGER PRIMARY KEY AUTOINCREMENT`
+  - `name TEXT`
+  - `price REAL`
+  - `priceCentavos INTEGER`
+  - `quantity INTEGER`
+  - `description TEXT`
+  - `category TEXT`
+
+- `purchases`
+  - `id INTEGER PRIMARY KEY AUTOINCREMENT`
+  - `name TEXT`
+  - `date TEXT`
+  - `itemIds TEXT`
+  - `totalValue REAL`
+  - `isAdded TEXT`
+
+- `item_prices`
+  - `id INTEGER PRIMARY KEY AUTOINCREMENT`
+  - `itemId INTEGER`
+  - `price REAL`
+  - `date TEXT`
+
+### Regra de valor monetário
+
+A base usa `priceCentavos` para cálculos de valor com precisão e menor risco de erro por ponto flutuante.
+
+## Categorias atuais
+
+Fonte: `assets/category.JSON`
+
+1. Alimentos
+2. Bebidas
+3. Hortifruti
+4. Carnes
+5. Padaria
+6. Laticínios e Embutidos
+7. Limpeza
+8. Higiene e Beleza
+9. Casa
+10. Pet
+11. Outros
+
+Mapeamento de cores em `lib/utils/app_colors.dart`, com compatibilidade para categorias antigas.
+
+## Como executar
+
+### Pré-requisitos
+
+- Flutter SDK compatível com o projeto
+- Android Studio ou VS Code
 - Emulador Android ou dispositivo físico
 
-### **Instalação**
+### Instalação e execução
 
-1. **Clone o repositório**
-```bash
-git clone https://github.com/JCZerf/Market_Express.git
-cd Market_Express
-```
-
-2. **Instale as dependências**
 ```bash
 flutter pub get
-```
-
-3. **Execute o aplicativo**
-```bash
 flutter run
 ```
 
-### **Build para Produção**
+## Verificações de qualidade
 
-**Android APK:**
+Análise completa:
+
+```bash
+flutter analyze
+```
+
+Análise de arquivos específicos:
+
+```bash
+flutter analyze lib/screens/HomePage.dart lib/screens/Shopping_page.dart
+```
+
+## Build
+
+APK Android:
+
 ```bash
 flutter build apk --release
 ```
 
-**Android App Bundle:**
+App Bundle Android:
+
 ```bash
 flutter build appbundle --release
 ```
 
-## 💾 Banco de Dados
+## Versionamento
 
-O aplicativo utiliza SQLite com as seguintes tabelas:
+Versão do aplicativo em `pubspec.yaml`:
 
-### **Tabela `items`**
-```sql
-CREATE TABLE items(
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  name TEXT,
-  price REAL,
-  priceCentavos INTEGER,
-  quantity INTEGER,
-  description TEXT,
-  category TEXT
-)
+```yaml
+version: 2.2.0+3
 ```
 
-### **Tabela `purchases`**
-```sql
-CREATE TABLE purchases(
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  name TEXT,
-  date TEXT,
-  itemIds TEXT,
-  totalValue REAL,
-  isAdded TEXT
-)
-```
+Marca d’água de versão na interface em `lib/utils/watermark_widget.dart`.
 
-### **Tabela `item_prices`**
-```sql
-CREATE TABLE item_prices(
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  itemId INTEGER,
-  price REAL,
-  date TEXT
-)
-```
+## Notas de manutenção
 
-## 🎯 Funcionalidades Detalhadas
-
-### **Tela Principal (HomePage)**
-- Lista todos os produtos cadastrados
-- Barra de pesquisa com filtro em tempo real
-- Cartões com informações do produto (nome, descrição, categoria, quantidade, preço)
-- Botão para adicionar novos produtos
-- Opção de excluir produtos com confirmação
-
-### **Adicionar/Editar Produto**
-- Formulário completo com validação
-- Campos: nome, preço, quantidade, descrição, categoria
-- Seleção de categoria a partir de lista predefinida
-- Formatação automática de valores monetários
-
-### **Lista de Compras**
-- Criação de listas personalizadas
-- Seleção de produtos existentes
-- Cálculo automático do total
-- Data e nome personalizáveis
-
-### **Modo Shopping**
-- Interface otimizada para uso durante compras
-- Marcar/desmarcar itens como adicionados
-- Visualização clara do progresso
-- Opções para editar ou remover itens da lista
-
-### **Histórico de Preços**
-- Acompanhamento de variações de preço
-- Registro automático ao atualizar preços
-- Visualização cronológica
-
-## 🔧 Configurações
-
-### **Categorias de Produtos**
-As categorias são carregadas de `assets/category.JSON`:
-```json
-[
-  "Alimentação",
-  "Bebidas",
-  "Higiene",
-  "Limpeza",
-  "Outros"
-]
-```
-
-### **Ícone do App**
-- Localização: `assets/img/logo.png`
-- Configuração automática para Android e iOS via `flutter_launcher_icons`
-
-## 🤝 Contribuição
-
-Contribuições são bem-vindas! Para contribuir:
-
-1. Faça um fork do projeto
-2. Crie uma branch para sua feature (`git checkout -b feature/AmazingFeature`)
-3. Commit suas mudanças (`git commit -m 'Add some AmazingFeature'`)
-4. Push para a branch (`git push origin feature/AmazingFeature`)
-5. Abra um Pull Request
-
-## 📝 Roadmap
-
-### **Próximas Funcionalidades**
-- [ ] **Sincronização em Nuvem**: Backup e sincronização entre dispositivos
-- [ ] **Compartilhamento**: Compartilhar listas de compras com outros usuários
-- [ ] **Notificações**: Lembretes para compras planejadas
-- [ ] **Análise de Gastos**: Gráficos e relatórios de gastos
-- [ ] **Modo Escuro**: Tema escuro para o aplicativo
-- [ ] **Exportação**: Exportar listas e relatórios em PDF/Excel
-
-### **Melhorias Técnicas**
-- [ ] **Testes Unitários**: Cobertura completa de testes
-- [ ] **Testes de Widget**: Testes de interface
-- [ ] **CI/CD**: Pipeline de integração contínua
-- [ ] **Performance**: Otimizações de performance
-- [ ] **Acessibilidade**: Melhorias de acessibilidade
-
-## 📄 Licença
-
-Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para mais detalhes.
-
-## 👨‍💻 Autor
-
-**JCarlos** - [@JCZerf](https://github.com/JCZerf)
-
----
-
-**Market Express** - *Simplificando suas compras, organizando sua vida* 🛒✨
+- Mantenha comportamento de busca consistente entre telas (`SearchSuggestionsPanel` + controle de abertura/fechamento).
+- Ao alterar normalização de busca, revisar `utils/search_normalizer.dart` e `utils/item_search_helper.dart`.
+- Ao alterar categorias, revisar em conjunto:
+  - `assets/category.JSON`
+  - `utils/app_colors.dart`
+  - `utils/variable_price_categories.dart`
+- Em mudanças de schema, atualizar migração em `DBHelper` e incrementar versão do banco com cuidado.

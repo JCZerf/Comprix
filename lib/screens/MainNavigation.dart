@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:market_express/screens/AnalysisPage.dart';
 import 'package:market_express/screens/HomePage.dart';
 import 'package:market_express/screens/PurchasesListPage.dart';
 import 'package:market_express/utils/app_colors.dart';
@@ -13,7 +14,7 @@ class MainNavigation extends StatefulWidget {
 class _MainNavigationState extends State<MainNavigation> {
   int _selectedIndex = 0;
 
-  final List<Widget> _pages = [HomePage(), PurchasesListPage()];
+  final List<Widget> _pages = [HomePage(), PurchasesListPage(), AnalysisPage()];
 
   @override
   Widget build(BuildContext context) {
@@ -32,6 +33,7 @@ class _MainNavigationState extends State<MainNavigation> {
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.list_rounded), label: 'Lista'),
           BottomNavigationBarItem(icon: Icon(Icons.shopping_cart_rounded), label: 'Compras'),
+          BottomNavigationBarItem(icon: Icon(Icons.analytics_rounded), label: 'Análise'),
         ],
         onTap: (index) {
           setState(() {

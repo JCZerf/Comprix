@@ -3,6 +3,7 @@ import 'package:market_express/controllers/ItemMarketController.dart';
 import 'package:market_express/controllers/ItemPriceController.dart';
 import 'package:market_express/controllers/PurchasesController.dart';
 import 'package:market_express/screens/MainNavigation.dart';
+import 'package:market_express/utils/app_colors.dart';
 import 'package:provider/provider.dart';
 
 void main() {
@@ -13,49 +14,59 @@ void main() {
         ChangeNotifierProvider(create: (_) => PurchaseController()),
         ChangeNotifierProvider(create: (_) => ItemPriceController()),
       ],
-      child: const MarketExpressApp(),
+      child: const ComprixApp(),
     ),
   );
 }
 
-class MarketExpressApp extends StatelessWidget {
-  const MarketExpressApp({super.key});
+class ComprixApp extends StatelessWidget {
+  const ComprixApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Market Express',
+      title: 'Comprix',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        primarySwatch: Colors.lightBlue,
-        scaffoldBackgroundColor: Colors.grey[50],
+        useMaterial3: true,
+        colorScheme: const ColorScheme.light(
+          primary: AppColors.primaryBlue,
+          onPrimary: Colors.white,
+          secondary: AppColors.accentBlue,
+          onSecondary: Colors.white,
+          surface: AppColors.cardBackground,
+          onSurface: AppColors.textPrimary,
+          error: AppColors.primaryBlue,
+          onError: Colors.white,
+          brightness: Brightness.light,
+        ),
+        scaffoldBackgroundColor: AppColors.background,
+        canvasColor: Colors.white,
+        cardColor: Colors.white,
+        dividerColor: AppColors.divider,
         appBarTheme: AppBarTheme(
-          backgroundColor: Colors.lightBlue[700],
+          backgroundColor: AppColors.primaryBlue,
           foregroundColor: Colors.white,
           centerTitle: true,
           elevation: 0,
-          shadowColor: Colors.transparent,
+          shadowColor: Colors.black.withValues(alpha: 0.08),
           titleTextStyle: const TextStyle(
-            fontSize: 22,
-            fontWeight: FontWeight.w700,
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
             color: Colors.white,
-            letterSpacing: 0.5,
           ),
           iconTheme: const IconThemeData(color: Colors.white, size: 24),
           actionsIconTheme: const IconThemeData(color: Colors.white, size: 24),
-          shape: const RoundedRectangleBorder(
-            borderRadius: BorderRadius.vertical(bottom: Radius.circular(16)),
-          ),
         ),
         floatingActionButtonTheme: FloatingActionButtonThemeData(
-          backgroundColor: Colors.lightBlue[700],
+          backgroundColor: AppColors.primaryBlue,
           foregroundColor: Colors.white,
           elevation: 6,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         ),
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.lightBlue[700],
+            backgroundColor: AppColors.primaryBlue,
             foregroundColor: Colors.white,
             elevation: 2,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
