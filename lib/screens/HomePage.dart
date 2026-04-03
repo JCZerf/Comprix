@@ -84,6 +84,9 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     final itemController = Provider.of<MarketItemController>(context);
+    final totalItemsCount = itemController.allItems.length;
+    final visibleItemsCount = itemController.items.length;
+    final hasActiveSearch = _searchController.text.trim().isNotEmpty;
     final searchSuggestions = buildItemNameSuggestions(
       itemController.allItems,
       _searchController.text,
@@ -320,6 +323,44 @@ class _HomePageState extends State<HomePage> {
                           _showSearchSuggestions = false;
                         });
                       },
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        const Icon(
+                          Icons.inventory_2_outlined,
+                          size: 14,
+                          color: AppColors.textSecondary,
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          '$totalItemsCount ${totalItemsCount == 1 ? 'item cadastrado' : 'itens cadastrados'}',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: AppColors.textSecondary,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        if (hasActiveSearch) ...[
+                          const SizedBox(width: 8),
+                          const Text(
+                            '•',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: AppColors.textLight,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Mostrando $visibleItemsCount',
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: AppColors.textSecondary,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ],
                     ),
                   ],
                 ),
@@ -612,26 +653,19 @@ class _HomePageState extends State<HomePage> {
                                                           vertical: 5,
                                                         ),
                                                     decoration: BoxDecoration(
-                                                      gradient: LinearGradient(
-                                                        colors: [
-                                                          AppColors
-                                                              .backgroundBlue,
-                                                          AppColors.accentBlue
-                                                              .withValues(
-                                                                alpha: 0.22,
-                                                              ),
-                                                        ],
-                                                      ),
+                                                      color: Colors.white,
                                                       borderRadius:
                                                           BorderRadius.circular(
                                                             8,
                                                           ),
+                                                      border: Border.all(
+                                                        color: AppColors.divider,
+                                                      ),
                                                       boxShadow: [
                                                         BoxShadow(
-                                                          color: AppColors
-                                                              .primaryBlue
+                                                          color: Colors.black
                                                               .withValues(
-                                                                alpha: 0.2,
+                                                                alpha: 0.05,
                                                               ),
                                                           blurRadius: 4,
                                                           offset: const Offset(

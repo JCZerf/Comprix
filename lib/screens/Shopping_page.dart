@@ -1420,23 +1420,21 @@ class _ShoppingPageState extends State<ShoppingPage> {
                                                           vertical: 5,
                                                         ),
                                                     decoration: BoxDecoration(
-                                                      gradient: LinearGradient(
-                                                        colors: [
-                                                          AppColors
-                                                              .backgroundBlue,
-                                                          AppColors
-                                                              .backgroundBlue,
-                                                        ],
-                                                      ),
+                                                      color: Colors.white,
                                                       borderRadius:
                                                           BorderRadius.circular(
                                                             8,
                                                           ),
+                                                      border: Border.all(
+                                                        color: AppColors.divider,
+                                                      ),
                                                       boxShadow: [
                                                         BoxShadow(
                                                           color: AppColors
                                                               .textSecondary
-                                                              .withOpacity(0.2),
+                                                              .withValues(
+                                                                alpha: 0.2,
+                                                              ),
                                                           blurRadius: 4,
                                                           offset: const Offset(
                                                             0,
@@ -1480,36 +1478,20 @@ class _ShoppingPageState extends State<ShoppingPage> {
                                                           vertical: 5,
                                                         ),
                                                     decoration: BoxDecoration(
-                                                      gradient: LinearGradient(
-                                                        colors: isChecked
-                                                            ? [
-                                                                AppColors
-                                                                    .backgroundBlue,
-                                                                AppColors
-                                                                    .divider,
-                                                              ]
-                                                            : [
-                                                                AppColors
-                                                                    .backgroundBlue,
-                                                                AppColors
-                                                                    .accentBlue,
-                                                              ],
-                                                      ),
+                                                      color: Colors.white,
                                                       borderRadius:
                                                           BorderRadius.circular(
                                                             8,
                                                           ),
+                                                      border: Border.all(
+                                                        color: AppColors.divider,
+                                                      ),
                                                       boxShadow: [
                                                         BoxShadow(
-                                                          color:
-                                                              (isChecked
-                                                                      ? AppColors
-                                                                            .textPrimary
-                                                                      : AppColors
-                                                                            .primaryBlue)
-                                                                  .withOpacity(
-                                                                    0.2,
-                                                                  ),
+                                                          color: Colors.black
+                                                              .withValues(
+                                                                alpha: 0.05,
+                                                              ),
                                                           blurRadius: 4,
                                                           offset: const Offset(
                                                             0,
@@ -1529,11 +1511,8 @@ class _ShoppingPageState extends State<ShoppingPage> {
                                                           ),
                                                           style: TextStyle(
                                                             fontSize: 13,
-                                                            color: isChecked
-                                                                ? AppColors
-                                                                      .textPrimary
-                                                                : AppColors
-                                                                      .primaryBlueDark,
+                                                            color: AppColors
+                                                                .textPrimary,
                                                             fontWeight:
                                                                 FontWeight.w700,
                                                             letterSpacing: -0.5,

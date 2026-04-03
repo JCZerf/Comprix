@@ -298,14 +298,7 @@ class _SelectItemPageState extends State<SelectItemPage> {
                     return Container(
                       margin: const EdgeInsets.only(bottom: 12),
                       decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: isSelected
-                              ? [
-                                  AppColors.backgroundBlue,
-                                  AppColors.backgroundBlue.withOpacity(0.3),
-                                ]
-                              : [Colors.white, Colors.white],
-                        ),
+                        color: Colors.white,
                         borderRadius: BorderRadius.circular(16),
                         border: Border.all(
                           color: isSelected
@@ -316,8 +309,8 @@ class _SelectItemPageState extends State<SelectItemPage> {
                         boxShadow: [
                           BoxShadow(
                             color: isSelected
-                                ? AppColors.primaryBlue.withOpacity(0.15)
-                                : Colors.black.withOpacity(0.05),
+                                ? AppColors.primaryBlue.withValues(alpha: 0.15)
+                                : Colors.black.withValues(alpha: 0.05),
                             blurRadius: 8,
                             offset: const Offset(0, 3),
                           ),
@@ -347,16 +340,14 @@ class _SelectItemPageState extends State<SelectItemPage> {
                                 vertical: 4,
                               ),
                               decoration: BoxDecoration(
-                                gradient: LinearGradient(
-                                  colors: [
-                                    AppColors.backgroundBlue,
-                                    AppColors.backgroundBlue,
-                                  ],
-                                ),
+                                color: Colors.white,
                                 borderRadius: BorderRadius.circular(8),
+                                border: Border.all(color: AppColors.divider),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: AppColors.textSecondary.withOpacity(0.2),
+                                    color: AppColors.textSecondary.withValues(
+                                      alpha: 0.2,
+                                    ),
                                     blurRadius: 4,
                                     offset: const Offset(0, 2),
                                   ),
@@ -388,19 +379,16 @@ class _SelectItemPageState extends State<SelectItemPage> {
                                 Container(
                                   padding: const EdgeInsets.symmetric(
                                     horizontal: 10,
-                                    vertical: 6,
+                                    vertical: 5,
                                   ),
                                   decoration: BoxDecoration(
-                                    gradient: LinearGradient(
-                                      colors: [
-                                        AppColors.backgroundBlue,
-                                        AppColors.backgroundBlue,
-                                      ],
-                                    ),
-                                    borderRadius: BorderRadius.circular(10),
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(8),
+                                    border: Border.all(color: AppColors.divider),
                                     boxShadow: [
                                       BoxShadow(
-                                        color: AppColors.textSecondary.withOpacity(0.2),
+                                        color: AppColors.textSecondary
+                                            .withValues(alpha: 0.2),
                                         blurRadius: 4,
                                         offset: const Offset(0, 2),
                                       ),
@@ -411,14 +399,14 @@ class _SelectItemPageState extends State<SelectItemPage> {
                                     children: [
                                       Icon(
                                         Icons.inventory_2_rounded,
-                                        size: 13,
+                                        size: 16,
                                         color: AppColors.textPrimary,
                                       ),
                                       const SizedBox(width: 4),
                                       Text(
                                         'Qtd: ${item.quantity}',
                                         style: TextStyle(
-                                          fontSize: 12,
+                                          fontSize: 13,
                                           color: AppColors.textPrimary,
                                           fontWeight: FontWeight.w700,
                                         ),
@@ -430,19 +418,17 @@ class _SelectItemPageState extends State<SelectItemPage> {
                                 Container(
                                   padding: const EdgeInsets.symmetric(
                                     horizontal: 10,
-                                    vertical: 6,
+                                    vertical: 5,
                                   ),
                                   decoration: BoxDecoration(
-                                    gradient: LinearGradient(
-                                      colors: [
-                                        AppColors.backgroundBlue,
-                                        AppColors.accentBlue,
-                                      ],
-                                    ),
-                                    borderRadius: BorderRadius.circular(10),
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(8),
+                                    border: Border.all(color: AppColors.divider),
                                     boxShadow: [
                                       BoxShadow(
-                                        color: AppColors.primaryBlue.withOpacity(0.2),
+                                        color: Colors.black.withValues(
+                                          alpha: 0.05,
+                                        ),
                                         blurRadius: 4,
                                         offset: const Offset(0, 2),
                                       ),
@@ -451,11 +437,6 @@ class _SelectItemPageState extends State<SelectItemPage> {
                                   child: Row(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
-                                      Icon(
-                                        Icons.attach_money_rounded,
-                                        size: 15,
-                                        color: AppColors.primaryBlueDark,
-                                      ),
                                       Text(
                                         PriceHelper.centavosToFormattedString(
                                           item.priceCentavos ?? 0,
@@ -463,7 +444,7 @@ class _SelectItemPageState extends State<SelectItemPage> {
                                         style: TextStyle(
                                           fontSize: 13,
                                           fontWeight: FontWeight.w700,
-                                          color: AppColors.primaryBlueDark,
+                                          color: AppColors.textPrimary,
                                           letterSpacing: -0.3,
                                         ),
                                       ),
