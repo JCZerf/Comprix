@@ -394,6 +394,7 @@ class _CreatePurchasePageState extends State<CreatePurchasePage> {
                               _searchQuery = value;
                               _showSearchSuggestions = false;
                             });
+                            FocusManager.instance.primaryFocus?.unfocus();
                           },
                         ),
                         SearchSuggestionsPanel(

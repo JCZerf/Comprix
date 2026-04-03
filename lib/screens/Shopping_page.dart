@@ -1035,6 +1035,7 @@ class _ShoppingPageState extends State<ShoppingPage> {
                           _itemSearchQuery = value;
                           _showSearchSuggestions = false;
                         });
+                        FocusManager.instance.primaryFocus?.unfocus();
                       },
                     ),
                     SearchSuggestionsPanel(

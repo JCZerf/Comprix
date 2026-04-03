@@ -192,6 +192,7 @@ class _SelectItemPageState extends State<SelectItemPage> {
                       _search = _normalizeForSort(value);
                       _showSearchSuggestions = false;
                     });
+                    FocusManager.instance.primaryFocus?.unfocus();
                   },
                 ),
                 SearchSuggestionsPanel(

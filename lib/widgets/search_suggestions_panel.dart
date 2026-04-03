@@ -58,7 +58,10 @@ class SearchSuggestionsPanel extends StatelessWidget {
                       suggestion,
                       style: const TextStyle(fontSize: 12),
                     ),
-                    onPressed: () => onSuggestionTap(suggestion),
+                    onPressed: () {
+                      FocusManager.instance.primaryFocus?.unfocus();
+                      onSuggestionTap(suggestion);
+                    },
                     avatar: const Icon(
                       Icons.search_rounded,
                       size: 16,

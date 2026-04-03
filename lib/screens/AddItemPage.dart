@@ -197,9 +197,12 @@ class _AddItemPageState extends State<AddItemPage> with SingleTickerProviderStat
                                       onChanged: (_) => setState(() {
                                         _showNameSuggestions = true;
                                       }),
-                                      onFieldSubmitted: (_) => setState(() {
-                                        _showNameSuggestions = false;
-                                      }),
+                                      onFieldSubmitted: (_) {
+                                        setState(() {
+                                          _showNameSuggestions = false;
+                                        });
+                                        FocusManager.instance.primaryFocus?.unfocus();
+                                      },
                                       onSaved: (_) => name = _nameController.text.trim(),
                                       validator: (value) =>
                                           value == null || value.isEmpty ? 'Informe o nome' : null,
