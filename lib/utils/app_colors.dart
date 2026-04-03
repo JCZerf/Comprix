@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:market_express/utils/search_normalizer.dart';
 
 /// Paleta de cores da identidade visual do Comprix
 class AppColors {
@@ -54,14 +55,58 @@ class AppColors {
     Color(0xFF0891B2), // Cyan dark
   ];
 
+  static const Map<String, Color> _categoryColorMap = {
+    'alimentos': Color(0xFFF59E0B),
+    'bebidas': Color(0xFF3B82F6),
+    'hortifruti': Color(0xFF22C55E),
+    'padaria e confeitaria': Color(0xFFD97706),
+    'carnes e frios': Color(0xFFDC2626),
+    'laticinios': Color(0xFFEAB308),
+    'congelados': Color(0xFF38BDF8),
+    'mercearia': Color(0xFF64748B),
+    'doces e sobremesas': Color(0xFFEC4899),
+    'cereais e matinais': Color(0xFFCA8A04),
+    'massas e farinhas': Color(0xFFF97316),
+    'molhos condimentos e temperos': Color(0xFFEF4444),
+    'oleos e gorduras': Color(0xFFEA580C),
+    'limpeza': Color(0xFF66BB6A),
+    'higiene pessoal': Color(0xFF06B6D4),
+    'perfumaria e cosmeticos': Color(0xFFA855F7),
+    'utilidades domesticas': Color(0xFF475569),
+    'pet shop': Color(0xFF8B5CF6),
+    'saude e bem estar': Color(0xFF0EA5E9),
+    'casa e jardim': Color(0xFF65A30D),
+    'produtos naturais e organicos': Color(0xFF16A34A),
+    'bebidas alcoolicas': Color(0xFF7C2D12),
+  };
+
+  static String _normalizeCategoryKey(String? category) {
+    if (category == null || category.trim().isEmpty) {
+      return '';
+    }
+
+    final normalized = normalizeSearchText(category)
+        .replaceAll(RegExp(r'[^a-z0-9\s]'), ' ')
+        .replaceAll(RegExp(r'\s+'), ' ')
+        .trim();
+
+    return normalized;
+  }
+
   static Color getCategoryColor(String? category) {
-    if (category == null || category.isEmpty) {
+    final normalizedCategory = _normalizeCategoryKey(category);
+    if (normalizedCategory.isEmpty) {
       return textLight;
     }
 
+    final mappedColor = _categoryColorMap[normalizedCategory];
+    if (mappedColor != null) {
+      return mappedColor;
+    }
+
     int hash = 5381;
-    for (int i = 0; i < category.length; i++) {
-      hash = ((hash << 5) + hash) + category.codeUnitAt(i);
+    for (int i = 0; i < normalizedCategory.length; i++) {
+      hash = ((hash << 5) + hash) + normalizedCategory.codeUnitAt(i);
     }
 
     final index = hash.abs() % categoryColors.length;

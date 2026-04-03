@@ -38,7 +38,7 @@ class _PriceUpdatePageState extends State<PriceUpdatePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: ComprixAppBar(
-        title: ComprixAppBar.titleText('Atualizar Preço', fontWeight: FontWeight.w600),
+        title: ComprixAppBar.titleText('Histórico de preços', fontWeight: FontWeight.w600),
       ),
       backgroundColor: Colors.white,
       body: Stack(

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:market_express/controllers/ItemMarketController.dart';
 import 'package:market_express/controllers/ItemPriceController.dart';
 import 'package:market_express/models/ItemMarketModel.dart';
-import 'package:market_express/screens/PriceUpdatePage.dart';
 import 'package:market_express/services/LoadCategories.dart';
 import 'package:market_express/utils/app_colors.dart';
 import 'package:market_express/widgets/comprix_app_bar.dart';
@@ -395,58 +394,7 @@ class _ItemDetailPageState extends State<ItemDetailPage> with SingleTickerProvid
                                       ),
                                     ),
 
-                                    // Botão de atualizar preço
-                                    Container(
-                                      margin: const EdgeInsets.only(top: 4),
-                                      child: SizedBox(
-                                        width: double.infinity,
-                                        height: 52,
-                                        child: OutlinedButton.icon(
-                                          style: OutlinedButton.styleFrom(
-                                            foregroundColor: AppColors.primaryBlue,
-                                            side: const BorderSide(
-                                              color: AppColors.primaryBlue,
-                                              width: 1.5,
-                                            ),
-                                            shape: RoundedRectangleBorder(
-                                              borderRadius: BorderRadius.circular(14),
-                                            ),
-                                            backgroundColor: AppColors.primaryBlue.withOpacity(
-                                              0.05,
-                                            ),
-                                          ),
-                                          onPressed: () async {
-                                            final updatedPrice = await Navigator.push<double>(
-                                              context,
-                                              MaterialPageRoute(
-                                                builder: (_) => ChangeNotifierProvider(
-                                                  create: (_) => ItemPriceController(),
-                                                  child: PriceUpdatePage(item: widget.item),
-                                                ),
-                                              ),
-                                            );
-
-                                            if (updatedPrice != null) {
-                                              final newPriceCentavos = (updatedPrice * 100).round();
-                                              setState(() {
-                                                priceCentavos = newPriceCentavos;
-                                              });
-                                              // A atualização no banco já foi feita pelo PriceUpdatePage
-                                            }
-                                          },
-                                          icon: const Icon(Icons.price_change_rounded, size: 22),
-                                          label: const Text(
-                                            'Atualizar Preço e Ver Histórico',
-                                            style: TextStyle(
-                                              fontSize: 14,
-                                              fontWeight: FontWeight.w600,
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-
-                                    const SizedBox(height: 80),
+                                    const SizedBox(height: 24),
                                   ],
                                 ),
                               ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:market_express/controllers/ItemPriceController.dart';
 import 'package:market_express/controllers/ItemMarketController.dart';
 import 'package:market_express/controllers/PurchasesController.dart';
 import 'package:market_express/db/DbHelper.dart';
@@ -6,6 +7,7 @@ import 'package:market_express/models/ItemMarketModel.dart';
 import 'package:market_express/models/PurchaseModel.dart';
 import 'package:market_express/screens/AddItemPage.dart';
 import 'package:market_express/screens/ItemDetailsPage.dart';
+import 'package:market_express/screens/PriceUpdatePage.dart';
 import 'package:market_express/screens/SelectItemPage.dart';
 import 'package:market_express/utils/app_colors.dart';
 import 'package:market_express/utils/price_helper.dart';
@@ -30,6 +32,8 @@ class _ShoppingPageState extends State<ShoppingPage> {
   SortOption _currentSort = SortOption.alphabetical;
   bool _showBoughtItems = false;
   bool _isProcessingCheckAction = false;
+  final TextEditingController _itemSearchController = TextEditingController();
+  String _itemSearchQuery = '';
 
   String _normalize(String input) {
     final withNoDiacritics = input
@@ -47,6 +51,12 @@ class _ShoppingPageState extends State<ShoppingPage> {
   void initState() {
     super.initState();
     _isAdded = Map<int, bool>.from(widget.purchase.isAdded);
+  }
+
+  @override
+  void dispose() {
+    _itemSearchController.dispose();
+    super.dispose();
   }
 
   Future<void> _savePurchaseState(Map<int, bool> updatedIsAdded) async {
@@ -81,26 +91,108 @@ class _ShoppingPageState extends State<ShoppingPage> {
   }
 
   Future<_CompleteItemAction?> _askCompleteAction(MarketItem item) async {
-    return showDialog<_CompleteItemAction>(
+    return showModalBottomSheet<_CompleteItemAction>(
       context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('Concluir item'),
-        content: Text(
-          'Deseja atualizar o preço de "${item.name}" antes de concluir?',
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      backgroundColor: Colors.white,
+      builder: (context) => SafeArea(
+        child: Padding(
+          padding: EdgeInsets.fromLTRB(
+            20,
+            16,
+            20,
+            20 + MediaQuery.of(context).viewInsets.bottom,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  const Expanded(
+                    child: Text(
+                      'Concluir item',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: () => Navigator.pop(context),
+                    icon: const Icon(Icons.close_rounded),
+                    tooltip: 'Cancelar',
+                  ),
+                ],
+              ),
+              const SizedBox(height: 6),
+              Text(
+                'Como deseja concluir "${item.name}"?',
+                style: const TextStyle(
+                  fontSize: 14,
+                  color: AppColors.textSecondary,
+                ),
+              ),
+              const SizedBox(height: 18),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: () => Navigator.pop(
+                    context,
+                    _CompleteItemAction.updatePrice,
+                  ),
+                  icon: const Icon(Icons.attach_money_rounded),
+                  label: const Text('Sim, atualizar preço'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primaryBlue,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 10),
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  onPressed: () => Navigator.pop(
+                    context,
+                    _CompleteItemAction.markWithoutPrice,
+                  ),
+                  icon: const Icon(Icons.check_circle_outline_rounded),
+                  label: const Text('Não, só concluir'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.textPrimary,
+                    side: const BorderSide(color: AppColors.divider),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 10),
+              SizedBox(
+                width: double.infinity,
+                child: TextButton.icon(
+                  onPressed: () => Navigator.pop(context),
+                  icon: const Icon(Icons.cancel_outlined),
+                  label: const Text('Cancelar'),
+                  style: TextButton.styleFrom(
+                    foregroundColor: AppColors.textSecondary,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
-        actions: [
-          TextButton(
-            onPressed: () =>
-                Navigator.pop(context, _CompleteItemAction.markWithoutPrice),
-            child: const Text('Não, só concluir'),
-          ),
-          ElevatedButton(
-            onPressed: () =>
-                Navigator.pop(context, _CompleteItemAction.updatePrice),
-            child: const Text('Sim, atualizar preço'),
-          ),
-        ],
       ),
     );
   }
@@ -319,9 +411,19 @@ class _ShoppingPageState extends State<ShoppingPage> {
 
     // Aplicar ordenação
     final sortedItems = _sortItems(allItems);
-    final visibleItems = _showBoughtItems
+    final visibleByBoughtItems = _showBoughtItems
         ? sortedItems
         : sortedItems.where((item) => !(_isAdded[item.id] ?? false)).toList();
+    final normalizedSearch = _normalize(_itemSearchQuery.trim());
+    final hasSearchQuery = normalizedSearch.isNotEmpty;
+    final visibleItems = hasSearchQuery
+        ? visibleByBoughtItems.where((item) {
+            final normalizedName = _normalize(item.name);
+            final normalizedCategory = _normalize(item.category ?? '');
+            return normalizedName.contains(normalizedSearch) ||
+                normalizedCategory.contains(normalizedSearch);
+          }).toList()
+        : visibleByBoughtItems;
 
     double _calculateTotal(List<MarketItem> items) {
       int totalCentavos = items.fold(
@@ -335,7 +437,7 @@ class _ShoppingPageState extends State<ShoppingPage> {
         .where((item) => _isAdded[item.id] == true)
         .length;
     final totalItems = allItems.length;
-    final hiddenBoughtCount = sortedItems.length - visibleItems.length;
+    final hiddenBoughtCount = sortedItems.length - visibleByBoughtItems.length;
     final progress = totalItems > 0 ? completedCount / totalItems : 0.0;
 
     return Scaffold(
@@ -428,11 +530,21 @@ class _ShoppingPageState extends State<ShoppingPage> {
           ),
           IconButton(
             icon: Icon(
-              completedCount == totalItems
-                  ? Icons.check_circle
-                  : Icons.shopping_cart_outlined,
+              _showBoughtItems ? Icons.visibility_off : Icons.visibility,
               color: Colors.white,
             ),
+            tooltip: _showBoughtItems
+                ? 'Ocultar comprados'
+                : 'Mostrar comprados',
+            onPressed: () {
+              setState(() {
+                _showBoughtItems = !_showBoughtItems;
+              });
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.playlist_add_rounded, color: Colors.white),
+            tooltip: 'Adicionar item',
             onPressed: () async {
               final option = await showModalBottomSheet<String>(
                 context: context,
@@ -645,7 +757,7 @@ class _ShoppingPageState extends State<ShoppingPage> {
                 }
               } else if (option == 'existente') {
                 // Navega para a tela de seleção de itens
-                final selectedItem = await Navigator.push<MarketItem>(
+                final selectedItems = await Navigator.push<List<MarketItem>>(
                   context,
                   MaterialPageRoute(
                     builder: (_) =>
@@ -653,33 +765,53 @@ class _ShoppingPageState extends State<ShoppingPage> {
                   ),
                 );
 
-                if (selectedItem != null) {
+                if (selectedItems != null && selectedItems.isNotEmpty) {
                   final purchaseController = Provider.of<PurchaseController>(
                     context,
                     listen: false,
                   );
-                  final updatedItemIds = List<int>.from(widget.purchase.itemIds)
-                    ..add(selectedItem.id!);
-                  final updatedIsAdded = Map<int, bool>.from(_isAdded)
-                    ..[selectedItem.id!] = false;
+                  final updatedItemIds = List<int>.from(widget.purchase.itemIds);
+                  final updatedIsAdded = Map<int, bool>.from(_isAdded);
+                  double addedItemsTotal = 0.0;
+                  int addedItemsCount = 0;
+
+                  for (final selectedItem in selectedItems) {
+                    final itemId = selectedItem.id;
+                    if (itemId == null || updatedItemIds.contains(itemId)) {
+                      continue;
+                    }
+
+                    updatedItemIds.add(itemId);
+                    updatedIsAdded[itemId] = false;
+                    addedItemsTotal +=
+                        (((selectedItem.priceCentavos ?? 0) *
+                                selectedItem.quantity) /
+                            100.0);
+                    addedItemsCount++;
+                  }
+
+                  if (addedItemsCount == 0) return;
+
                   final updatedPurchase = Purchase(
                     id: widget.purchase.id,
                     name: widget.purchase.name,
                     date: widget.purchase.date,
                     itemIds: updatedItemIds,
-                    totalValue:
-                        widget.purchase.totalValue +
-                        (((selectedItem.priceCentavos ?? 0) *
-                                selectedItem.quantity) /
-                            100.0),
+                    totalValue: widget.purchase.totalValue + addedItemsTotal,
                     isAdded: updatedIsAdded,
                   );
                   await purchaseController.updatePurchase(updatedPurchase);
 
                   setState(() {
                     _isAdded = updatedIsAdded;
-                    widget.purchase.itemIds.add(selectedItem.id!);
+                    widget.purchase.itemIds
+                      ..clear()
+                      ..addAll(updatedItemIds);
                   });
+
+                  _showInfoMessage(
+                    '$addedItemsCount item${addedItemsCount > 1 ? 's' : ''} adicionado${addedItemsCount > 1 ? 's' : ''} com sucesso',
+                  );
                 }
               }
             },
@@ -830,46 +962,64 @@ class _ShoppingPageState extends State<ShoppingPage> {
                       ],
                     ),
                     const SizedBox(height: 10),
-                    Row(
-                      children: [
-                        OutlinedButton.icon(
-                          onPressed: () {
-                            setState(() {
-                              _showBoughtItems = !_showBoughtItems;
-                            });
-                          },
-                          style: OutlinedButton.styleFrom(
-                            side: BorderSide(color: AppColors.divider),
-                            foregroundColor: AppColors.textPrimary,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(999),
-                            ),
-                          ),
-                          icon: Icon(
-                            _showBoughtItems
-                                ? Icons.visibility_off
-                                : Icons.visibility,
-                            size: 16,
-                          ),
-                          label: Text(
-                            _showBoughtItems
-                                ? 'Ocultar comprados'
-                                : 'Mostrar comprados',
+                    TextField(
+                      controller: _itemSearchController,
+                      decoration: InputDecoration(
+                        labelText: 'Pesquisar itens',
+                        hintText: 'Digite nome ou categoria',
+                        prefixIcon: const Icon(
+                          Icons.search_rounded,
+                          color: AppColors.primaryBlue,
+                        ),
+                        suffixIcon: _itemSearchQuery.isNotEmpty
+                            ? IconButton(
+                                icon: const Icon(Icons.clear_rounded),
+                                onPressed: () {
+                                  _itemSearchController.clear();
+                                  setState(() {
+                                    _itemSearchQuery = '';
+                                  });
+                                },
+                              )
+                            : null,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: BorderSide(color: AppColors.divider),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: BorderSide(color: AppColors.divider),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: const BorderSide(
+                            color: AppColors.primaryBlue,
+                            width: 2,
                           ),
                         ),
-                        if (!_showBoughtItems && hiddenBoughtCount > 0) ...[
-                          const SizedBox(width: 10),
-                          Text(
-                            '$hiddenBoughtCount oculto${hiddenBoughtCount > 1 ? 's' : ''}',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: AppColors.textSecondary,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ],
-                      ],
+                        filled: true,
+                        fillColor: Colors.white,
+                      ),
+                      onChanged: (value) {
+                        setState(() {
+                          _itemSearchQuery = value;
+                        });
+                      },
                     ),
+                    if (!_showBoughtItems && hiddenBoughtCount > 0) ...[
+                      const SizedBox(height: 8),
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          '$hiddenBoughtCount item${hiddenBoughtCount > 1 ? 's' : ''} comprado${hiddenBoughtCount > 1 ? 's' : ''} oculto${hiddenBoughtCount > 1 ? 's' : ''}',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: AppColors.textSecondary,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    ],
                     const SizedBox(height: 10),
                     if (completedCount == totalItems)
                       Container(
@@ -928,71 +1078,85 @@ class _ShoppingPageState extends State<ShoppingPage> {
               ),
               Expanded(
                 child: visibleItems.isEmpty
-                    ? Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(32),
-                              decoration: BoxDecoration(
-                                gradient: LinearGradient(
-                                  begin: Alignment.topLeft,
-                                  end: Alignment.bottomRight,
-                                  colors: [
-                                    Colors.grey[100]!,
-                                    Colors.grey[200]!,
+                    ? LayoutBuilder(
+                        builder: (context, constraints) {
+                          return SingleChildScrollView(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 24,
+                              vertical: 16,
+                            ),
+                            child: ConstrainedBox(
+                              constraints: BoxConstraints(
+                                minHeight: constraints.maxHeight,
+                              ),
+                              child: Center(
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.all(32),
+                                      decoration: BoxDecoration(
+                                        gradient: LinearGradient(
+                                          begin: Alignment.topLeft,
+                                          end: Alignment.bottomRight,
+                                          colors: [
+                                            Colors.grey[100]!,
+                                            Colors.grey[200]!,
+                                          ],
+                                        ),
+                                        shape: BoxShape.circle,
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: Colors.black.withOpacity(0.1),
+                                            blurRadius: 20,
+                                            offset: const Offset(0, 8),
+                                          ),
+                                        ],
+                                      ),
+                                      child: Icon(
+                                        totalItems == 0
+                                            ? Icons.shopping_basket_rounded
+                                            : hasSearchQuery
+                                            ? Icons.search_off_rounded
+                                            : Icons.shopping_basket_rounded,
+                                        size: 64,
+                                        color: Colors.grey[400],
+                                      ),
+                                    ),
+                                    const SizedBox(height: 24),
+                                    Text(
+                                      totalItems == 0
+                                          ? 'Nenhum item nesta compra'
+                                          : hasSearchQuery
+                                          ? 'Nenhum item encontrado'
+                                          : 'Itens comprados ocultos',
+                                      style: TextStyle(
+                                        fontSize: 18,
+                                        color: Colors.grey[700],
+                                        fontWeight: FontWeight.w600,
+                                        letterSpacing: -0.5,
+                                      ),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      totalItems == 0
+                                          ? 'Adicione itens para começar'
+                                          : hasSearchQuery
+                                          ? 'Tente outro termo de pesquisa'
+                                          : 'Toque no ícone de olho para visualizar',
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        color: Colors.grey[500],
+                                      ),
+                                      textAlign: TextAlign.center,
+                                    ),
                                   ],
                                 ),
-                                shape: BoxShape.circle,
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withOpacity(0.1),
-                                    blurRadius: 20,
-                                    offset: const Offset(0, 8),
-                                  ),
-                                ],
-                              ),
-                              child: Icon(
-                                Icons.shopping_basket_rounded,
-                                size: 64,
-                                color: Colors.grey[400],
                               ),
                             ),
-                            const SizedBox(height: 24),
-                            Text(
-                              totalItems == 0
-                                  ? 'Nenhum item nesta compra'
-                                  : 'Itens comprados ocultos',
-                              style: TextStyle(
-                                fontSize: 18,
-                                color: Colors.grey[700],
-                                fontWeight: FontWeight.w600,
-                                letterSpacing: -0.5,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              totalItems == 0
-                                  ? 'Adicione itens para começar'
-                                  : 'Toque em "Mostrar comprados" para visualizar',
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: Colors.grey[500],
-                              ),
-                            ),
-                            if (totalItems > 0 && !_showBoughtItems) ...[
-                              const SizedBox(height: 16),
-                              ElevatedButton(
-                                onPressed: () {
-                                  setState(() {
-                                    _showBoughtItems = true;
-                                  });
-                                },
-                                child: const Text('Mostrar comprados'),
-                              ),
-                            ],
-                          ],
-                        ),
+                          );
+                        },
                       )
                     : Padding(
                         padding: const EdgeInsets.symmetric(
@@ -1397,6 +1561,20 @@ class _ShoppingPageState extends State<ShoppingPage> {
                                                 ),
                                               );
                                               setState(() {});
+                                            } else if (value == 'historico') {
+                                              await Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                  builder: (_) =>
+                                                      ChangeNotifierProvider(
+                                                        create: (_) =>
+                                                            ItemPriceController(),
+                                                        child: PriceUpdatePage(
+                                                          item: item,
+                                                        ),
+                                                      ),
+                                                ),
+                                              );
                                             } else if (value == 'remover') {
                                               // Modal de confirmação moderno
                                               final confirmed = await showDialog<bool>(
@@ -1669,6 +1847,76 @@ class _ShoppingPageState extends State<ShoppingPage> {
                                                         ),
                                                         Text(
                                                           'Alterar dados do produto',
+                                                          style: TextStyle(
+                                                            fontSize: 12,
+                                                            color: Colors
+                                                                .grey[600],
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            ),
+                                            PopupMenuItem(
+                                              value: 'historico',
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                    horizontal: 16,
+                                                    vertical: 8,
+                                                  ),
+                                              child: Container(
+                                                padding: const EdgeInsets.all(
+                                                  8,
+                                                ),
+                                                decoration: BoxDecoration(
+                                                  borderRadius:
+                                                      BorderRadius.circular(8),
+                                                ),
+                                                child: Row(
+                                                  children: [
+                                                    Container(
+                                                      padding:
+                                                          const EdgeInsets.all(
+                                                            6,
+                                                          ),
+                                                      decoration: BoxDecoration(
+                                                        color: AppColors
+                                                            .accentBlue
+                                                            .withOpacity(0.1),
+                                                        borderRadius:
+                                                            BorderRadius.circular(
+                                                              6,
+                                                            ),
+                                                      ),
+                                                      child: Icon(
+                                                        Icons.history_rounded,
+                                                        size: 16,
+                                                        color: AppColors
+                                                            .accentBlue,
+                                                      ),
+                                                    ),
+                                                    const SizedBox(width: 12),
+                                                    Column(
+                                                      crossAxisAlignment:
+                                                          CrossAxisAlignment
+                                                              .start,
+                                                      mainAxisSize:
+                                                          MainAxisSize.min,
+                                                      children: [
+                                                        Text(
+                                                          'Histórico de preço',
+                                                          style: TextStyle(
+                                                            fontSize: 15,
+                                                            fontWeight:
+                                                                FontWeight.w600,
+                                                            color: Colors
+                                                                .grey[800],
+                                                          ),
+                                                        ),
+                                                        Text(
+                                                          'Ver evolução dos preços',
                                                           style: TextStyle(
                                                             fontSize: 12,
                                                             color: Colors
