@@ -2,6 +2,7 @@ import 'package:market_express/utils/search_normalizer.dart';
 
 const Set<String> _variablePriceCategoryKeys = {
   'hortifruti',
+  'carnes',
   'carnes e frios',
   'produtos naturais e organicos',
 };
