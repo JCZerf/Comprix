@@ -40,6 +40,7 @@ enum HomeSortOption {
 class _HomePageState extends State<HomePage> {
   final TextEditingController _searchController = TextEditingController();
   HomeSortOption _currentSort = HomeSortOption.alphabetical;
+  bool _showSearchSuggestions = true;
 
   int _compareByName(MarketItem a, MarketItem b) {
     return _normalize(a.name).compareTo(_normalize(b.name));
@@ -255,6 +256,9 @@ class _HomePageState extends State<HomePage> {
                                     context,
                                     listen: false,
                                   ).clearSearch();
+                                  setState(() {
+                                    _showSearchSuggestions = true;
+                                  });
                                 },
                               )
                             : null,
@@ -281,15 +285,28 @@ class _HomePageState extends State<HomePage> {
                         ),
                       ),
                       onChanged: (value) {
-                        setState(() {});
+                        setState(() {
+                          _showSearchSuggestions = true;
+                        });
                         Provider.of<MarketItemController>(
                           context,
                           listen: false,
                         ).searchItems(value);
                       },
+                      onSubmitted: (value) {
+                        Provider.of<MarketItemController>(
+                          context,
+                          listen: false,
+                        ).searchItems(value);
+                        setState(() {
+                          _showSearchSuggestions = false;
+                        });
+                      },
                     ),
                     SearchSuggestionsPanel(
-                      suggestions: searchSuggestions,
+                      suggestions: _showSearchSuggestions
+                          ? searchSuggestions
+                          : const [],
                       onSuggestionTap: (suggestion) {
                         _searchController.text = suggestion;
                         _searchController.selection = TextSelection.fromPosition(
@@ -299,7 +316,9 @@ class _HomePageState extends State<HomePage> {
                           context,
                           listen: false,
                         ).searchItems(suggestion);
-                        setState(() {});
+                        setState(() {
+                          _showSearchSuggestions = false;
+                        });
                       },
                     ),
                   ],
@@ -379,6 +398,20 @@ class _HomePageState extends State<HomePage> {
                           itemCount: visibleItems.length,
                           itemBuilder: (context, index) {
                             final MarketItem item = visibleItems[index];
+                            final hasCategory =
+                                item.category != null &&
+                                item.category!.trim().isNotEmpty;
+                            final categoryLabel = hasCategory
+                                ? item.category!.trim()
+                                : 'A definir';
+                            final categoryColor = hasCategory
+                                ? AppColors.getCategoryColor(item.category)
+                                : AppColors.textSecondary;
+                            final categoryBackgroundColor = hasCategory
+                                ? AppColors.getCategoryColorLight(item.category)
+                                : AppColors.textSecondary.withValues(
+                                    alpha: 0.12,
+                                  );
                             return Container(
                               margin: const EdgeInsets.only(bottom: 14),
                               decoration: BoxDecoration(
@@ -403,7 +436,7 @@ class _HomePageState extends State<HomePage> {
                                 ],
                               ),
                               child: Material(
-                                color: Colors.white,
+                                color: Colors.transparent,
                                 child: InkWell(
                                   borderRadius: BorderRadius.circular(16),
                                   onTap: () {
@@ -434,10 +467,10 @@ class _HomePageState extends State<HomePage> {
                                               Text(
                                                 item.name,
                                                 style: const TextStyle(
-                                                  fontSize: 17,
-                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 18,
+                                                  fontWeight: FontWeight.w800,
                                                   color: AppColors.textPrimary,
-                                                  letterSpacing: -0.5,
+                                                  letterSpacing: -0.3,
                                                 ),
                                               ),
                                               // Adicionar descrição se existir
@@ -459,7 +492,54 @@ class _HomePageState extends State<HomePage> {
                                                       TextOverflow.ellipsis,
                                                 ),
                                               ],
-                                              const SizedBox(height: 10),
+                                              const SizedBox(height: 8),
+                                              Container(
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                      horizontal: 6,
+                                                      vertical: 2,
+                                                    ),
+                                                decoration: BoxDecoration(
+                                                  color: categoryBackgroundColor,
+                                                  borderRadius:
+                                                      BorderRadius.circular(6),
+                                                  border: Border.all(
+                                                    color:
+                                                        categoryColor.withValues(
+                                                          alpha: 0.4,
+                                                        ),
+                                                    width: 1.5,
+                                                  ),
+                                                ),
+                                                child: Row(
+                                                  mainAxisSize:
+                                                      MainAxisSize.min,
+                                                  children: [
+                                                    Icon(
+                                                      Icons.category_rounded,
+                                                      size: 10,
+                                                      color: categoryColor
+                                                          .withValues(
+                                                            alpha: 0.85,
+                                                          ),
+                                                    ),
+                                                    const SizedBox(width: 3),
+                                                    Text(
+                                                      categoryLabel,
+                                                      style: TextStyle(
+                                                        fontSize: 10,
+                                                        color: categoryColor
+                                                            .withValues(
+                                                              alpha: 0.85,
+                                                            ),
+                                                        fontWeight:
+                                                            FontWeight.w700,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                              const SizedBox(height: 6),
                                               Wrap(
                                                 spacing: 8,
                                                 runSpacing: 8,
@@ -468,21 +548,35 @@ class _HomePageState extends State<HomePage> {
                                                     padding:
                                                         const EdgeInsets.symmetric(
                                                           horizontal: 10,
-                                                          vertical: 6,
+                                                          vertical: 5,
                                                         ),
                                                     decoration: BoxDecoration(
-                                                      color: AppColors
-                                                          .backgroundBlue,
+                                                      gradient: LinearGradient(
+                                                        colors: [
+                                                          AppColors
+                                                              .backgroundBlue,
+                                                          AppColors
+                                                              .backgroundBlue,
+                                                        ],
+                                                      ),
                                                       borderRadius:
                                                           BorderRadius.circular(
-                                                            999,
+                                                            8,
                                                           ),
-                                                      border: Border.all(
-                                                        color: AppColors.divider
-                                                            .withValues(
-                                                              alpha: 0.9,
-                                                            ),
-                                                      ),
+                                                      boxShadow: [
+                                                        BoxShadow(
+                                                          color: AppColors
+                                                              .textSecondary
+                                                              .withValues(
+                                                                alpha: 0.2,
+                                                              ),
+                                                          blurRadius: 4,
+                                                          offset: const Offset(
+                                                            0,
+                                                            2,
+                                                          ),
+                                                        ),
+                                                      ],
                                                     ),
                                                     child: Row(
                                                       mainAxisSize:
@@ -490,103 +584,84 @@ class _HomePageState extends State<HomePage> {
                                                       children: [
                                                         const Icon(
                                                           Icons
-                                                              .inventory_2_outlined,
-                                                          size: 14,
+                                                              .inventory_2_rounded,
+                                                          size: 16,
                                                           color: AppColors
-                                                              .textSecondary,
+                                                              .textPrimary,
                                                         ),
                                                         const SizedBox(
                                                           width: 4,
                                                         ),
                                                         Text(
-                                                          'Qtd ${item.quantity}',
+                                                          'Qtd: ${item.quantity}',
                                                           style: const TextStyle(
-                                                            fontSize: 12,
+                                                            fontSize: 13,
                                                             color: AppColors
                                                                 .textPrimary,
                                                             fontWeight:
-                                                                FontWeight.w600,
+                                                                FontWeight.w700,
                                                           ),
                                                         ),
                                                       ],
                                                     ),
                                                   ),
-                                                  if (item.category != null &&
-                                                      item.category!.isNotEmpty)
-                                                    Builder(
-                                                      builder: (context) {
-                                                        final categoryColor =
-                                                            AppColors.getCategoryColor(
-                                                              item.category,
-                                                            );
-                                                        return Container(
-                                                          padding:
-                                                              const EdgeInsets.symmetric(
-                                                                horizontal: 10,
-                                                                vertical: 6,
+                                                  Container(
+                                                    padding:
+                                                        const EdgeInsets.symmetric(
+                                                          horizontal: 10,
+                                                          vertical: 5,
+                                                        ),
+                                                    decoration: BoxDecoration(
+                                                      gradient: LinearGradient(
+                                                        colors: [
+                                                          AppColors
+                                                              .backgroundBlue,
+                                                          AppColors.accentBlue
+                                                              .withValues(
+                                                                alpha: 0.22,
                                                               ),
-                                                          decoration: BoxDecoration(
-                                                            color:
-                                                                AppColors.getCategoryColorLight(
-                                                                  item.category,
-                                                                ),
-                                                            borderRadius:
-                                                                BorderRadius.circular(
-                                                                  999,
-                                                                ),
-                                                            border: Border.all(
-                                                              color: categoryColor
-                                                                  .withValues(
-                                                                    alpha: 0.35,
-                                                                  ),
-                                                            ),
-                                                            boxShadow: [
-                                                              BoxShadow(
-                                                                color: categoryColor
-                                                                    .withValues(
-                                                                      alpha:
-                                                                          0.12,
-                                                                    ),
-                                                                blurRadius: 6,
-                                                                offset:
-                                                                    const Offset(
-                                                                      0,
-                                                                      2,
-                                                                    ),
-                                                              ),
-                                                            ],
+                                                        ],
+                                                      ),
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                            8,
                                                           ),
-                                                          child: Row(
-                                                            mainAxisSize:
-                                                                MainAxisSize
-                                                                    .min,
-                                                            children: [
-                                                              Icon(
-                                                                Icons
-                                                                    .sell_outlined,
-                                                                size: 12,
-                                                                color:
-                                                                    categoryColor,
+                                                      boxShadow: [
+                                                        BoxShadow(
+                                                          color: AppColors
+                                                              .primaryBlue
+                                                              .withValues(
+                                                                alpha: 0.2,
                                                               ),
-                                                              const SizedBox(
-                                                                width: 4,
-                                                              ),
-                                                              Text(
-                                                                item.category!,
-                                                                style: TextStyle(
-                                                                  fontSize: 12,
-                                                                  color:
-                                                                      categoryColor,
-                                                                  fontWeight:
-                                                                      FontWeight
-                                                                          .w700,
-                                                                ),
-                                                              ),
-                                                            ],
+                                                          blurRadius: 4,
+                                                          offset: const Offset(
+                                                            0,
+                                                            2,
                                                           ),
-                                                        );
-                                                      },
+                                                        ),
+                                                      ],
                                                     ),
+                                                    child: Row(
+                                                      mainAxisSize:
+                                                          MainAxisSize.min,
+                                                      children: [
+                                                        Text(
+                                                          PriceHelper.centavosToFormattedString(
+                                                            item.priceCentavos ??
+                                                                0,
+                                                          ),
+                                                          style: const TextStyle(
+                                                            fontSize: 13,
+                                                            color: AppColors
+                                                                .textPrimary,
+                                                            fontWeight:
+                                                                FontWeight.w700,
+                                                            letterSpacing: -0.2,
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ),
                                                 ],
                                               ),
                                             ],
@@ -597,35 +672,33 @@ class _HomePageState extends State<HomePage> {
                                               CrossAxisAlignment.end,
                                           children: [
                                             Container(
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                    horizontal: 10,
-                                                    vertical: 6,
-                                                  ),
                                               decoration: BoxDecoration(
-                                                color: AppColors.backgroundBlue,
+                                                gradient: LinearGradient(
+                                                  colors: [
+                                                    Colors.grey[100]!,
+                                                    Colors.grey[200]!,
+                                                  ],
+                                                ),
                                                 borderRadius:
-                                                    BorderRadius.circular(999),
-                                                border: Border.all(
-                                                  color: AppColors.divider,
-                                                ),
+                                                    BorderRadius.circular(10),
+                                                boxShadow: [
+                                                  BoxShadow(
+                                                    color: Colors.black
+                                                        .withValues(alpha: 0.1),
+                                                    blurRadius: 4,
+                                                    offset: const Offset(0, 2),
+                                                  ),
+                                                ],
                                               ),
-                                              child: Text(
-                                                PriceHelper.centavosToFormattedString(
-                                                  item.priceCentavos ?? 0,
+                                              child: IconButton(
+                                                icon: const Icon(
+                                                  Icons.delete_outline,
                                                 ),
-                                                style: const TextStyle(
-                                                  fontSize: 15,
-                                                  color: AppColors.textPrimary,
-                                                  fontWeight: FontWeight.w700,
+                                                padding: const EdgeInsets.all(
+                                                  8,
                                                 ),
-                                              ),
-                                            ),
-                                            const SizedBox(height: 4),
-                                            IconButton(
-                                              icon: const Icon(
-                                                Icons.delete_outline,
-                                              ),
+                                                constraints:
+                                                    const BoxConstraints(),
                                               color: AppColors.textSecondary,
                                               onPressed: () {
                                                 showDialog(
@@ -830,6 +903,7 @@ class _HomePageState extends State<HomePage> {
                                                   ),
                                                 );
                                               },
+                                            ),
                                             ),
                                           ],
                                         ),

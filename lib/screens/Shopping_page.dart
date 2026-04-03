@@ -37,6 +37,7 @@ class _ShoppingPageState extends State<ShoppingPage> {
   bool _isProcessingCheckAction = false;
   final TextEditingController _itemSearchController = TextEditingController();
   String _itemSearchQuery = '';
+  bool _showSearchSuggestions = true;
 
   String _normalize(String input) {
     final withNoDiacritics = input
@@ -1000,6 +1001,7 @@ class _ShoppingPageState extends State<ShoppingPage> {
                                   _itemSearchController.clear();
                                   setState(() {
                                     _itemSearchQuery = '';
+                                    _showSearchSuggestions = true;
                                   });
                                 },
                               )
@@ -1025,11 +1027,20 @@ class _ShoppingPageState extends State<ShoppingPage> {
                       onChanged: (value) {
                         setState(() {
                           _itemSearchQuery = value;
+                          _showSearchSuggestions = true;
+                        });
+                      },
+                      onSubmitted: (value) {
+                        setState(() {
+                          _itemSearchQuery = value;
+                          _showSearchSuggestions = false;
                         });
                       },
                     ),
                     SearchSuggestionsPanel(
-                      suggestions: searchSuggestions,
+                      suggestions: _showSearchSuggestions
+                          ? searchSuggestions
+                          : const [],
                       onSuggestionTap: (suggestion) {
                         _itemSearchController.text = suggestion;
                         _itemSearchController.selection = TextSelection.fromPosition(
@@ -1037,6 +1048,7 @@ class _ShoppingPageState extends State<ShoppingPage> {
                         );
                         setState(() {
                           _itemSearchQuery = suggestion;
+                          _showSearchSuggestions = false;
                         });
                       },
                     ),
@@ -1404,8 +1416,8 @@ class _ShoppingPageState extends State<ShoppingPage> {
                                                   Container(
                                                     padding:
                                                         const EdgeInsets.symmetric(
-                                                          horizontal: 8,
-                                                          vertical: 4,
+                                                          horizontal: 10,
+                                                          vertical: 5,
                                                         ),
                                                     decoration: BoxDecoration(
                                                       gradient: LinearGradient(
@@ -1440,7 +1452,7 @@ class _ShoppingPageState extends State<ShoppingPage> {
                                                         Icon(
                                                           Icons
                                                               .inventory_2_rounded,
-                                                          size: 12,
+                                                          size: 16,
                                                           color: AppColors
                                                               .textPrimary,
                                                         ),
@@ -1450,7 +1462,7 @@ class _ShoppingPageState extends State<ShoppingPage> {
                                                         Text(
                                                           'Qtd: ${item.quantity}',
                                                           style: TextStyle(
-                                                            fontSize: 11,
+                                                            fontSize: 13,
                                                             color: AppColors
                                                                 .textPrimary,
                                                             fontWeight:
@@ -1464,8 +1476,8 @@ class _ShoppingPageState extends State<ShoppingPage> {
                                                   Container(
                                                     padding:
                                                         const EdgeInsets.symmetric(
-                                                          horizontal: 8,
-                                                          vertical: 4,
+                                                          horizontal: 10,
+                                                          vertical: 5,
                                                         ),
                                                     decoration: BoxDecoration(
                                                       gradient: LinearGradient(
@@ -1510,23 +1522,13 @@ class _ShoppingPageState extends State<ShoppingPage> {
                                                       mainAxisSize:
                                                           MainAxisSize.min,
                                                       children: [
-                                                        Icon(
-                                                          Icons
-                                                              .attach_money_rounded,
-                                                          size: 14,
-                                                          color: isChecked
-                                                              ? AppColors
-                                                                    .textPrimary
-                                                              : AppColors
-                                                                    .primaryBlueDark,
-                                                        ),
                                                         Text(
                                                           PriceHelper.centavosToFormattedString(
                                                             item.priceCentavos ??
                                                                 0,
                                                           ),
                                                           style: TextStyle(
-                                                            fontSize: 11,
+                                                            fontSize: 13,
                                                             color: isChecked
                                                                 ? AppColors
                                                                       .textPrimary

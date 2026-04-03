@@ -22,6 +22,7 @@ class SelectItemPage extends StatefulWidget {
 class _SelectItemPageState extends State<SelectItemPage> {
   final TextEditingController _searchController = TextEditingController();
   String _search = '';
+  bool _showSearchSuggestions = true;
   final Set<int> _selectedItemIds = <int>{};
 
   @override
@@ -159,6 +160,7 @@ class _SelectItemPageState extends State<SelectItemPage> {
                               _searchController.clear();
                               setState(() {
                                 _search = '';
+                                _showSearchSuggestions = true;
                               });
                             },
                           )
@@ -182,11 +184,20 @@ class _SelectItemPageState extends State<SelectItemPage> {
                   onChanged: (value) {
                     setState(() {
                       _search = _normalizeForSort(value);
+                      _showSearchSuggestions = true;
+                    });
+                  },
+                  onSubmitted: (value) {
+                    setState(() {
+                      _search = _normalizeForSort(value);
+                      _showSearchSuggestions = false;
                     });
                   },
                 ),
                 SearchSuggestionsPanel(
-                  suggestions: searchSuggestions,
+                  suggestions: _showSearchSuggestions
+                      ? searchSuggestions
+                      : const [],
                   onSuggestionTap: (suggestion) {
                     _searchController.text = suggestion;
                     _searchController.selection = TextSelection.fromPosition(
@@ -194,6 +205,7 @@ class _SelectItemPageState extends State<SelectItemPage> {
                     );
                     setState(() {
                       _search = _normalizeForSort(suggestion);
+                      _showSearchSuggestions = false;
                     });
                   },
                 ),

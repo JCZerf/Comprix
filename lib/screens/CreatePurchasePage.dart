@@ -24,6 +24,7 @@ class _CreatePurchasePageState extends State<CreatePurchasePage> {
   String name = '';
   DateTime date = DateTime.now();
   String _searchQuery = '';
+  bool _showSearchSuggestions = true;
   bool _isSavingPurchase = false;
   final Set<int> selectedItemIds = {};
 
@@ -359,6 +360,7 @@ class _CreatePurchasePageState extends State<CreatePurchasePage> {
                                       _searchController.clear();
                                       setState(() {
                                         _searchQuery = '';
+                                        _showSearchSuggestions = true;
                                       });
                                     },
                                   )
@@ -384,11 +386,20 @@ class _CreatePurchasePageState extends State<CreatePurchasePage> {
                           onChanged: (value) {
                             setState(() {
                               _searchQuery = value;
+                              _showSearchSuggestions = true;
+                            });
+                          },
+                          onSubmitted: (value) {
+                            setState(() {
+                              _searchQuery = value;
+                              _showSearchSuggestions = false;
                             });
                           },
                         ),
                         SearchSuggestionsPanel(
-                          suggestions: searchSuggestions,
+                          suggestions: _showSearchSuggestions
+                              ? searchSuggestions
+                              : const [],
                           onSuggestionTap: (suggestion) {
                             _searchController.text = suggestion;
                             _searchController.selection = TextSelection.fromPosition(
@@ -396,6 +407,7 @@ class _CreatePurchasePageState extends State<CreatePurchasePage> {
                             );
                             setState(() {
                               _searchQuery = suggestion;
+                              _showSearchSuggestions = false;
                             });
                           },
                         ),

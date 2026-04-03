@@ -28,6 +28,7 @@ class _AddItemPageState extends State<AddItemPage> with SingleTickerProviderStat
   String? category;
   List<String> categories = [];
   bool _isLoading = false;
+  bool _showNameSuggestions = true;
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
@@ -193,7 +194,12 @@ class _AddItemPageState extends State<AddItemPage> with SingleTickerProviderStat
                                         ),
                                       ),
                                       textCapitalization: TextCapitalization.words,
-                                      onChanged: (_) => setState(() {}),
+                                      onChanged: (_) => setState(() {
+                                        _showNameSuggestions = true;
+                                      }),
+                                      onFieldSubmitted: (_) => setState(() {
+                                        _showNameSuggestions = false;
+                                      }),
                                       onSaved: (_) => name = _nameController.text.trim(),
                                       validator: (value) =>
                                           value == null || value.isEmpty ? 'Informe o nome' : null,
@@ -238,14 +244,18 @@ class _AddItemPageState extends State<AddItemPage> with SingleTickerProviderStat
                                         title: duplicateFeedback.hasExactMatch
                                             ? 'Itens já cadastrados'
                                             : 'Itens parecidos encontrados',
-                                        suggestions: duplicateFeedback.similarNames,
+                                        suggestions: _showNameSuggestions
+                                            ? duplicateFeedback.similarNames
+                                            : const [],
                                         onSuggestionTap: (suggestion) {
                                           _nameController.text = suggestion;
                                           _nameController.selection =
                                               TextSelection.fromPosition(
                                             TextPosition(offset: suggestion.length),
                                           );
-                                          setState(() {});
+                                          setState(() {
+                                            _showNameSuggestions = false;
+                                          });
                                         },
                                       ),
                                   ],

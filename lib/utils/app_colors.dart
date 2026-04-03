@@ -56,9 +56,20 @@ class AppColors {
   ];
 
   static const Map<String, Color> _categoryColorMap = {
+    // Categorias enxutas (atuais)
     'alimentos': Color(0xFFF59E0B),
     'bebidas': Color(0xFF3B82F6),
     'hortifruti': Color(0xFF22C55E),
+    'carnes': Color(0xFFDC2626),
+    'padaria': Color(0xFFD97706),
+    'laticinios e embutidos': Color(0xFFEAB308),
+    'limpeza': Color(0xFF66BB6A),
+    'higiene e beleza': Color(0xFF8B5CF6),
+    'casa': Color(0xFF65A30D),
+    'pet': Color(0xFF06B6D4),
+    'outros': Color(0xFF64748B),
+
+    // Legado (compatibilidade com itens antigos)
     'padaria e confeitaria': Color(0xFFD97706),
     'carnes e frios': Color(0xFFDC2626),
     'laticinios': Color(0xFFEAB308),
@@ -69,7 +80,6 @@ class AppColors {
     'massas e farinhas': Color(0xFFF97316),
     'molhos condimentos e temperos': Color(0xFFEF4444),
     'oleos e gorduras': Color(0xFFEA580C),
-    'limpeza': Color(0xFF66BB6A),
     'higiene pessoal': Color(0xFF06B6D4),
     'perfumaria e cosmeticos': Color(0xFFA855F7),
     'utilidades domesticas': Color(0xFF475569),

@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:market_express/db/DbHelper.dart';
 import 'package:market_express/models/ItemMarketModel.dart';
 import 'package:market_express/utils/app_colors.dart';
+import 'package:market_express/utils/item_search_helper.dart';
 import 'package:market_express/utils/price_helper.dart';
 import 'package:market_express/utils/search_normalizer.dart';
 import 'package:market_express/utils/watermark_widget.dart';
 import 'package:market_express/widgets/comprix_app_bar.dart';
+import 'package:market_express/widgets/search_suggestions_panel.dart';
 
 class _PriceHistoryPoint {
   final DateTime date;
@@ -51,11 +53,20 @@ class _AnalysisPageState extends State<AnalysisPage> {
   bool _isLoading = true;
   List<_PriceAnalysisEntry> _entries = [];
   int? _selectedItemId;
+  final TextEditingController _itemSearchController = TextEditingController();
+  String _itemSearchQuery = '';
+  bool _showSearchSuggestions = true;
 
   @override
   void initState() {
     super.initState();
     _loadDashboardData();
+  }
+
+  @override
+  void dispose() {
+    _itemSearchController.dispose();
+    super.dispose();
   }
 
   String _formatShortDate(DateTime value) {
@@ -86,6 +97,72 @@ class _AnalysisPageState extends State<AnalysisPage> {
     if (deltaCentavos > 0) return Icons.trending_up_rounded;
     if (deltaCentavos < 0) return Icons.trending_down_rounded;
     return Icons.remove_rounded;
+  }
+
+  List<_PriceAnalysisEntry> _filterEntriesByQuery(
+    List<_PriceAnalysisEntry> source,
+    String rawQuery,
+  ) {
+    final normalizedQuery = normalizeSearchText(rawQuery.trim());
+    if (normalizedQuery.isEmpty) return source;
+
+    return source.where((entry) {
+      final normalizedName = normalizeSearchText(entry.item.name);
+      final normalizedCategory = normalizeSearchText(entry.item.category ?? '');
+      return normalizedName.contains(normalizedQuery) ||
+          normalizedCategory.contains(normalizedQuery);
+    }).toList();
+  }
+
+  int? _resolveSelectedItemId(
+    List<_PriceAnalysisEntry> visibleEntries,
+    int? currentSelectedId, {
+    int? preferredId,
+  }) {
+    if (visibleEntries.isEmpty) return null;
+
+    if (preferredId != null &&
+        visibleEntries.any((entry) => entry.item.id == preferredId)) {
+      return preferredId;
+    }
+
+    if (currentSelectedId != null &&
+        visibleEntries.any((entry) => entry.item.id == currentSelectedId)) {
+      return currentSelectedId;
+    }
+
+    return visibleEntries.first.item.id;
+  }
+
+  void _applySearchQuery(
+    String value, {
+    bool preferExactName = false,
+    bool showSuggestions = true,
+  }) {
+    final visibleEntries = _filterEntriesByQuery(_entries, value);
+    int? preferredId;
+
+    if (preferExactName) {
+      final normalizedValue = normalizeSearchText(value.trim());
+      if (normalizedValue.isNotEmpty) {
+        for (final entry in visibleEntries) {
+          if (normalizeSearchText(entry.item.name) == normalizedValue) {
+            preferredId = entry.item.id;
+            break;
+          }
+        }
+      }
+    }
+
+    setState(() {
+      _itemSearchQuery = value;
+      _showSearchSuggestions = showSuggestions;
+      _selectedItemId = _resolveSelectedItemId(
+        visibleEntries,
+        _selectedItemId,
+        preferredId: preferredId,
+      );
+    });
   }
 
   Future<void> _loadDashboardData() async {
@@ -136,11 +213,8 @@ class _AnalysisPageState extends State<AnalysisPage> {
       if (!mounted) return;
       setState(() {
         _entries = entries;
-        if (_entries.isEmpty) {
-          _selectedItemId = null;
-        } else if (!_entries.any((e) => e.item.id == _selectedItemId)) {
-          _selectedItemId = _entries.first.item.id;
-        }
+        final visibleEntries = _filterEntriesByQuery(_entries, _itemSearchQuery);
+        _selectedItemId = _resolveSelectedItemId(visibleEntries, _selectedItemId);
       });
     } finally {
       if (mounted) {
@@ -153,10 +227,16 @@ class _AnalysisPageState extends State<AnalysisPage> {
 
   @override
   Widget build(BuildContext context) {
-    final selectedEntry = _entries.cast<_PriceAnalysisEntry?>().firstWhere(
+    final filteredEntries = _filterEntriesByQuery(_entries, _itemSearchQuery);
+    final selectedEntry = filteredEntries.cast<_PriceAnalysisEntry?>().firstWhere(
           (entry) => entry?.item.id == _selectedItemId,
-          orElse: () => _entries.isNotEmpty ? _entries.first : null,
+          orElse: () => filteredEntries.isNotEmpty ? filteredEntries.first : null,
         );
+    final searchSuggestions = buildItemNameSuggestions(
+      _entries.map((entry) => entry.item).toList(),
+      _itemSearchQuery,
+      maxSuggestions: 6,
+    );
 
     final trackedEntries = _entries.where((e) => e.hasVariationData).toList();
     final increasedCount = trackedEntries.where((e) => e.deltaCentavos > 0).length;
@@ -253,7 +333,7 @@ class _AnalysisPageState extends State<AnalysisPage> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           const Text(
-                            'Selecionar produto',
+                            'Pesquisar produto',
                             style: TextStyle(
                               fontSize: 13,
                               color: AppColors.textSecondary,
@@ -261,24 +341,26 @@ class _AnalysisPageState extends State<AnalysisPage> {
                             ),
                           ),
                           const SizedBox(height: 8),
-                          DropdownButtonFormField<int>(
-                            value: selectedEntry?.item.id,
-                            items: _entries
-                                .where((entry) => entry.item.id != null)
-                                .map(
-                                  (entry) => DropdownMenuItem<int>(
-                                    value: entry.item.id!,
-                                    child: Text(entry.item.name),
-                                  ),
-                                )
-                                .toList(),
-                            onChanged: (value) {
-                              setState(() {
-                                _selectedItemId = value;
-                              });
-                            },
+                          TextField(
+                            controller: _itemSearchController,
                             decoration: InputDecoration(
-                              isDense: true,
+                              hintText: 'Digite nome ou categoria',
+                              prefixIcon: const Icon(
+                                Icons.search_rounded,
+                                color: AppColors.primaryBlue,
+                              ),
+                              suffixIcon: _itemSearchQuery.isNotEmpty
+                                  ? IconButton(
+                                      icon: const Icon(Icons.clear_rounded),
+                                      onPressed: () {
+                                        _itemSearchController.clear();
+                                        _applySearchQuery(
+                                          '',
+                                          showSuggestions: true,
+                                        );
+                                      },
+                                    )
+                                  : null,
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
                               ),
@@ -294,7 +376,62 @@ class _AnalysisPageState extends State<AnalysisPage> {
                                 ),
                               ),
                             ),
+                            onChanged: (value) =>
+                                _applySearchQuery(value, showSuggestions: true),
+                            onSubmitted: (value) =>
+                                _applySearchQuery(value, showSuggestions: false),
                           ),
+                          SearchSuggestionsPanel(
+                            suggestions: _showSearchSuggestions
+                                ? searchSuggestions
+                                : const [],
+                            onSuggestionTap: (suggestion) {
+                              _itemSearchController.text = suggestion;
+                              _itemSearchController.selection =
+                                  TextSelection.fromPosition(
+                                TextPosition(offset: suggestion.length),
+                              );
+                              _applySearchQuery(
+                                suggestion,
+                                preferExactName: true,
+                                showSuggestions: false,
+                              );
+                            },
+                          ),
+                          if (_itemSearchQuery.trim().isNotEmpty) ...[
+                            const SizedBox(height: 8),
+                            Text(
+                              filteredEntries.isEmpty
+                                  ? 'Nenhum item encontrado para esta pesquisa'
+                                  : '${filteredEntries.length} item${filteredEntries.length == 1 ? '' : 's'} encontrado${filteredEntries.length == 1 ? '' : 's'}',
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: AppColors.textSecondary,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                          if (selectedEntry == null &&
+                              _itemSearchQuery.trim().isNotEmpty) ...[
+                            const SizedBox(height: 12),
+                            Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: AppColors.backgroundBlue,
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(color: AppColors.divider),
+                              ),
+                              child: const Text(
+                                'Ajuste a pesquisa para selecionar um item e ver os detalhes.',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: AppColors.textSecondary,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                          ],
                         ],
                       ),
                     ),
