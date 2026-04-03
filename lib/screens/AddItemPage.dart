@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:market_express/services/LoadCategories.dart';
 import 'package:market_express/utils/app_colors.dart';
+import 'package:market_express/utils/item_search_helper.dart';
 import 'package:market_express/widgets/comprix_app_bar.dart';
 import 'package:market_express/widgets/price_form_field.dart';
+import 'package:market_express/widgets/search_suggestions_panel.dart';
 import 'package:provider/provider.dart';
 
 import '../controllers/ItemMarketController.dart';
@@ -17,6 +19,7 @@ class AddItemPage extends StatefulWidget {
 
 class _AddItemPageState extends State<AddItemPage> with SingleTickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
+  final TextEditingController _nameController = TextEditingController();
   String name = '';
   int priceCentavos = 0;
   int quantity = 1;
@@ -53,6 +56,7 @@ class _AddItemPageState extends State<AddItemPage> with SingleTickerProviderStat
 
   @override
   void dispose() {
+    _nameController.dispose();
     _animationController.dispose();
     super.dispose();
   }
@@ -66,6 +70,14 @@ class _AddItemPageState extends State<AddItemPage> with SingleTickerProviderStat
 
   @override
   Widget build(BuildContext context) {
+    final existingItems = Provider.of<MarketItemController>(context).allItems;
+    final duplicateFeedback = getItemNameDuplicateFeedback(
+      existingItems,
+      _nameController.text,
+      maxSuggestions: 5,
+    );
+    final hasNameInput = _nameController.text.trim().isNotEmpty;
+
     return Scaffold(
       appBar: ComprixAppBar(
         title: ComprixAppBar.titleText('Adicionar Item'),
@@ -145,39 +157,96 @@ class _AddItemPageState extends State<AddItemPage> with SingleTickerProviderStat
                             children: [
                               // Nome do item
                               _buildFormField(
-                                child: TextFormField(
-                                  decoration: InputDecoration(
-                                    labelText: 'Nome do item *',
-                                    hintText: 'Ex: Arroz integral 1kg',
-                                    prefixIcon: const Icon(
-                                      Icons.inventory_2_rounded,
-                                      color: AppColors.primaryBlue,
-                                    ),
-                                    border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(14),
-                                    ),
-                                    enabledBorder: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(14),
-                                      borderSide: BorderSide(color: AppColors.divider),
-                                    ),
-                                    focusedBorder: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(14),
-                                      borderSide: const BorderSide(
-                                        color: AppColors.primaryBlue,
-                                        width: 2,
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    TextFormField(
+                                      controller: _nameController,
+                                      decoration: InputDecoration(
+                                        labelText: 'Nome do item *',
+                                        hintText: 'Ex: Arroz integral 1kg',
+                                        prefixIcon: const Icon(
+                                          Icons.inventory_2_rounded,
+                                          color: AppColors.primaryBlue,
+                                        ),
+                                        border: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(14),
+                                        ),
+                                        enabledBorder: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(14),
+                                          borderSide: BorderSide(color: AppColors.divider),
+                                        ),
+                                        focusedBorder: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(14),
+                                          borderSide: const BorderSide(
+                                            color: AppColors.primaryBlue,
+                                            width: 2,
+                                          ),
+                                        ),
+                                        filled: true,
+                                        fillColor: Colors.white,
+                                        contentPadding: const EdgeInsets.symmetric(
+                                          horizontal: 16,
+                                          vertical: 18,
+                                        ),
                                       ),
+                                      textCapitalization: TextCapitalization.words,
+                                      onChanged: (_) => setState(() {}),
+                                      onSaved: (_) => name = _nameController.text.trim(),
+                                      validator: (value) =>
+                                          value == null || value.isEmpty ? 'Informe o nome' : null,
                                     ),
-                                    filled: true,
-                                    fillColor: Colors.white,
-                                    contentPadding: const EdgeInsets.symmetric(
-                                      horizontal: 16,
-                                      vertical: 18,
-                                    ),
-                                  ),
-                                  textCapitalization: TextCapitalization.words,
-                                  onSaved: (value) => name = value!.trim(),
-                                  validator: (value) =>
-                                      value == null || value.isEmpty ? 'Informe o nome' : null,
+                                    if (hasNameInput && duplicateFeedback.hasExactMatch) ...[
+                                      const SizedBox(height: 10),
+                                      Container(
+                                        width: double.infinity,
+                                        padding: const EdgeInsets.all(10),
+                                        decoration: BoxDecoration(
+                                          color: Colors.orange.withValues(alpha: 0.1),
+                                          borderRadius: BorderRadius.circular(10),
+                                          border: Border.all(
+                                            color: Colors.orange.withValues(alpha: 0.4),
+                                          ),
+                                        ),
+                                        child: const Row(
+                                          children: [
+                                            Icon(
+                                              Icons.warning_amber_rounded,
+                                              size: 18,
+                                              color: Colors.orange,
+                                            ),
+                                            SizedBox(width: 8),
+                                            Expanded(
+                                              child: Text(
+                                                'Já existe um item com este nome.',
+                                                style: TextStyle(
+                                                  fontSize: 12,
+                                                  fontWeight: FontWeight.w600,
+                                                  color: AppColors.textPrimary,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                    if (hasNameInput &&
+                                        duplicateFeedback.similarNames.isNotEmpty)
+                                      SearchSuggestionsPanel(
+                                        title: duplicateFeedback.hasExactMatch
+                                            ? 'Itens já cadastrados'
+                                            : 'Itens parecidos encontrados',
+                                        suggestions: duplicateFeedback.similarNames,
+                                        onSuggestionTap: (suggestion) {
+                                          _nameController.text = suggestion;
+                                          _nameController.selection =
+                                              TextSelection.fromPosition(
+                                            TextPosition(offset: suggestion.length),
+                                          );
+                                          setState(() {});
+                                        },
+                                      ),
+                                  ],
                                 ),
                               ),
 
@@ -422,8 +491,42 @@ class _AddItemPageState extends State<AddItemPage> with SingleTickerProviderStat
                               ? null
                               : () async {
                                   if (_formKey.currentState!.validate()) {
-                                    setState(() => _isLoading = true);
                                     _formKey.currentState!.save();
+                                    final itemController = Provider.of<
+                                      MarketItemController
+                                    >(context, listen: false);
+
+                                    final duplicateCheck = getItemNameDuplicateFeedback(
+                                      itemController.allItems,
+                                      name,
+                                    );
+                                    if (duplicateCheck.hasExactMatch) {
+                                      final confirmDuplicate = await showDialog<bool>(
+                                        context: context,
+                                        builder: (context) => AlertDialog(
+                                          title: const Text('Item já existe'),
+                                          content: Text(
+                                            'Já existe um item chamado "$name". Deseja cadastrar mesmo assim?',
+                                          ),
+                                          actions: [
+                                            TextButton(
+                                              onPressed: () =>
+                                                  Navigator.pop(context, false),
+                                              child: const Text('Cancelar'),
+                                            ),
+                                            ElevatedButton(
+                                              onPressed: () =>
+                                                  Navigator.pop(context, true),
+                                              child: const Text('Cadastrar mesmo'),
+                                            ),
+                                          ],
+                                        ),
+                                      );
+
+                                      if (confirmDuplicate != true) return;
+                                    }
+
+                                    setState(() => _isLoading = true);
 
                                     final newItem = MarketItem(
                                       name: name,
@@ -433,17 +536,29 @@ class _AddItemPageState extends State<AddItemPage> with SingleTickerProviderStat
                                       category: category,
                                     );
 
-                                    final itemController = Provider.of<MarketItemController>(
-                                      context,
-                                      listen: false,
-                                    );
-                                    await itemController.addItem(newItem);
+                                    try {
+                                      await itemController.addItem(newItem);
 
-                                    final allItems = await itemController.getItems();
-                                    final addedItem = allItems.last;
+                                      final allItems = await itemController.getItems();
+                                      final addedItem = allItems.last;
 
-                                    if (mounted) {
-                                      Navigator.pop(context, addedItem);
+                                      if (mounted) {
+                                        Navigator.pop(context, addedItem);
+                                      }
+                                    } catch (_) {
+                                      if (mounted) {
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          const SnackBar(
+                                            content: Text(
+                                              'Não foi possível salvar agora. Tente novamente.',
+                                            ),
+                                          ),
+                                        );
+                                      }
+                                    } finally {
+                                      if (mounted) {
+                                        setState(() => _isLoading = false);
+                                      }
                                     }
                                   }
                                 },

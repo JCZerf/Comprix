@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:market_express/utils/app_colors.dart';
+import 'package:market_express/utils/item_search_helper.dart';
 import 'package:market_express/utils/price_helper.dart';
 import 'package:market_express/widgets/comprix_app_bar.dart';
+import 'package:market_express/widgets/search_suggestions_panel.dart';
 import 'package:provider/provider.dart';
 
 import '../controllers/ItemMarketController.dart';
@@ -226,7 +228,7 @@ class _CreatePurchasePageState extends State<CreatePurchasePage> {
 
   @override
   Widget build(BuildContext context) {
-    final items = Provider.of<MarketItemController>(context).items;
+    final items = Provider.of<MarketItemController>(context).allItems;
     final normalizedQuery = _normalize(_searchQuery.trim());
     final filteredItems = normalizedQuery.isEmpty
         ? items
@@ -235,6 +237,11 @@ class _CreatePurchasePageState extends State<CreatePurchasePage> {
             final category = _normalize(item.category ?? '');
             return itemName.contains(normalizedQuery) || category.contains(normalizedQuery);
           }).toList();
+    final searchSuggestions = buildItemNameSuggestions(
+      items,
+      _searchQuery,
+      maxSuggestions: 5,
+    );
     final selectedTotalCentavos = items
         .where((item) => selectedItemIds.contains(item.id))
         .fold<int>(0, (sum, item) => sum + ((item.priceCentavos ?? 0) * item.quantity));
@@ -377,6 +384,18 @@ class _CreatePurchasePageState extends State<CreatePurchasePage> {
                           onChanged: (value) {
                             setState(() {
                               _searchQuery = value;
+                            });
+                          },
+                        ),
+                        SearchSuggestionsPanel(
+                          suggestions: searchSuggestions,
+                          onSuggestionTap: (suggestion) {
+                            _searchController.text = suggestion;
+                            _searchController.selection = TextSelection.fromPosition(
+                              TextPosition(offset: suggestion.length),
+                            );
+                            setState(() {
+                              _searchQuery = suggestion;
                             });
                           },
                         ),

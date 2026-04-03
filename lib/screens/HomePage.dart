@@ -4,9 +4,11 @@ import 'package:market_express/models/ItemMarketModel.dart';
 import 'package:market_express/screens/AddItemPage.dart';
 import 'package:market_express/screens/ItemDetailsPage.dart';
 import 'package:market_express/utils/app_colors.dart';
+import 'package:market_express/utils/item_search_helper.dart';
 import 'package:market_express/utils/price_helper.dart';
 import 'package:market_express/utils/watermark_widget.dart';
 import 'package:market_express/widgets/comprix_app_bar.dart';
+import 'package:market_express/widgets/search_suggestions_panel.dart';
 import 'package:provider/provider.dart';
 
 String _normalize(String input) {
@@ -48,6 +50,13 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    final itemController = Provider.of<MarketItemController>(context);
+    final searchSuggestions = buildItemNameSuggestions(
+      itemController.allItems,
+      _searchController.text,
+      maxSuggestions: 5,
+    );
+
     return Scaffold(
       appBar: ComprixAppBar(
         title: ComprixAppBar.titleText('Comprix', fontSize: 22),
@@ -70,59 +79,77 @@ class _HomePageState extends State<HomePage> {
                     ),
                   ],
                 ),
-                child: TextField(
-                  controller: _searchController,
-                  decoration: InputDecoration(
-                    hintText: 'Pesquisar produtos...',
-                    hintStyle: TextStyle(color: AppColors.textLight),
-                    prefixIcon: Icon(
-                      Icons.search,
-                      color: AppColors.primaryBlue,
-                    ),
-                    suffixIcon: _searchController.text.isNotEmpty
-                        ? IconButton(
-                            icon: Icon(
-                              Icons.clear,
-                              color: AppColors.textSecondary,
-                            ),
-                            onPressed: () {
-                              _searchController.clear();
-                              Provider.of<MarketItemController>(
-                                context,
-                                listen: false,
-                              ).clearSearch();
-                            },
-                          )
-                        : null,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: AppColors.divider),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: AppColors.divider),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(
-                        color: AppColors.primaryBlue,
-                        width: 2,
+                child: Column(
+                  children: [
+                    TextField(
+                      controller: _searchController,
+                      decoration: InputDecoration(
+                        hintText: 'Pesquisar produtos...',
+                        hintStyle: TextStyle(color: AppColors.textLight),
+                        prefixIcon: Icon(
+                          Icons.search,
+                          color: AppColors.primaryBlue,
+                        ),
+                        suffixIcon: _searchController.text.isNotEmpty
+                            ? IconButton(
+                                icon: Icon(
+                                  Icons.clear,
+                                  color: AppColors.textSecondary,
+                                ),
+                                onPressed: () {
+                                  _searchController.clear();
+                                  Provider.of<MarketItemController>(
+                                    context,
+                                    listen: false,
+                                  ).clearSearch();
+                                },
+                              )
+                            : null,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(color: AppColors.divider),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(color: AppColors.divider),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(
+                            color: AppColors.primaryBlue,
+                            width: 2,
+                          ),
+                        ),
+                        filled: true,
+                        fillColor: AppColors.backgroundBlue,
+                        contentPadding: const EdgeInsets.symmetric(
+                          vertical: 14,
+                          horizontal: 16,
+                        ),
                       ),
+                      onChanged: (value) {
+                        setState(() {});
+                        Provider.of<MarketItemController>(
+                          context,
+                          listen: false,
+                        ).searchItems(value);
+                      },
                     ),
-                    filled: true,
-                    fillColor: AppColors.backgroundBlue,
-                    contentPadding: const EdgeInsets.symmetric(
-                      vertical: 14,
-                      horizontal: 16,
+                    SearchSuggestionsPanel(
+                      suggestions: searchSuggestions,
+                      onSuggestionTap: (suggestion) {
+                        _searchController.text = suggestion;
+                        _searchController.selection = TextSelection.fromPosition(
+                          TextPosition(offset: suggestion.length),
+                        );
+                        Provider.of<MarketItemController>(
+                          context,
+                          listen: false,
+                        ).searchItems(suggestion);
+                        setState(() {});
+                      },
                     ),
-                  ),
-                  onChanged: (value) {
-                    setState(() {});
-                    Provider.of<MarketItemController>(
-                      context,
-                      listen: false,
-                    ).searchItems(value);
-                  },
+                  ],
                 ),
               ),
               // Lista de itens

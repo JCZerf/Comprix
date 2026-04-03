@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:market_express/utils/app_colors.dart';
+import 'package:market_express/utils/item_search_helper.dart';
 import 'package:market_express/utils/price_helper.dart';
 import 'package:market_express/utils/search_normalizer.dart';
 import 'package:market_express/widgets/comprix_app_bar.dart';
+import 'package:market_express/widgets/search_suggestions_panel.dart';
 import 'package:provider/provider.dart';
 
 import '../controllers/ItemMarketController.dart';
@@ -66,6 +68,15 @@ class _SelectItemPageState extends State<SelectItemPage> {
 
   @override
   Widget build(BuildContext context) {
+    final allAvailableItems = _getSortedAvailableItems(
+      Provider.of<MarketItemController>(context).allItems,
+    );
+    final searchSuggestions = buildItemNameSuggestions(
+      allAvailableItems,
+      _search,
+      maxSuggestions: 5,
+    );
+
     return Scaffold(
       appBar: ComprixAppBar(
         title: ComprixAppBar.titleText('Selecionar Itens'),
@@ -134,43 +145,59 @@ class _SelectItemPageState extends State<SelectItemPage> {
           Container(
             padding: const EdgeInsets.all(24),
             color: Colors.white,
-            child: TextField(
-              controller: _searchController,
-              decoration: InputDecoration(
-                hintText: 'Pesquisar item...',
-                prefixIcon: const Icon(Icons.search_rounded, color: AppColors.primaryBlue),
-                suffixIcon: _search.isNotEmpty
-                    ? IconButton(
-                        icon: const Icon(Icons.clear_rounded),
-                        onPressed: () {
-                          _searchController.clear();
-                          setState(() {
-                            _search = '';
-                          });
-                        },
-                      )
-                    : null,
-                filled: true,
-                fillColor: AppColors.background,
-                contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(14),
-                  borderSide: BorderSide.none,
+            child: Column(
+              children: [
+                TextField(
+                  controller: _searchController,
+                  decoration: InputDecoration(
+                    hintText: 'Pesquisar item...',
+                    prefixIcon: const Icon(Icons.search_rounded, color: AppColors.primaryBlue),
+                    suffixIcon: _search.isNotEmpty
+                        ? IconButton(
+                            icon: const Icon(Icons.clear_rounded),
+                            onPressed: () {
+                              _searchController.clear();
+                              setState(() {
+                                _search = '';
+                              });
+                            },
+                          )
+                        : null,
+                    filled: true,
+                    fillColor: AppColors.background,
+                    contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      borderSide: BorderSide.none,
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      borderSide: const BorderSide(color: AppColors.divider),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      borderSide: const BorderSide(color: AppColors.primaryBlue, width: 2),
+                    ),
+                  ),
+                  onChanged: (value) {
+                    setState(() {
+                      _search = _normalizeForSort(value);
+                    });
+                  },
                 ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(14),
-                  borderSide: const BorderSide(color: AppColors.divider),
+                SearchSuggestionsPanel(
+                  suggestions: searchSuggestions,
+                  onSuggestionTap: (suggestion) {
+                    _searchController.text = suggestion;
+                    _searchController.selection = TextSelection.fromPosition(
+                      TextPosition(offset: suggestion.length),
+                    );
+                    setState(() {
+                      _search = _normalizeForSort(suggestion);
+                    });
+                  },
                 ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(14),
-                  borderSide: const BorderSide(color: AppColors.primaryBlue, width: 2),
-                ),
-              ),
-              onChanged: (value) {
-                setState(() {
-                  _search = _normalizeForSort(value);
-                });
-              },
+              ],
             ),
           ),
 
@@ -178,7 +205,9 @@ class _SelectItemPageState extends State<SelectItemPage> {
           Expanded(
             child: Consumer<MarketItemController>(
               builder: (context, controller, child) {
-                final allAvailableItems = _getSortedAvailableItems(controller.items);
+                final allAvailableItems = _getSortedAvailableItems(
+                  controller.allItems,
+                );
                 final filteredItems = allAvailableItems
                     .where((item) {
                       final normalizedName = _normalizeForSort(item.name);

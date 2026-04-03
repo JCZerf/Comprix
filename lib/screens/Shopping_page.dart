@@ -10,9 +10,11 @@ import 'package:market_express/screens/ItemDetailsPage.dart';
 import 'package:market_express/screens/PriceUpdatePage.dart';
 import 'package:market_express/screens/SelectItemPage.dart';
 import 'package:market_express/utils/app_colors.dart';
+import 'package:market_express/utils/item_search_helper.dart';
 import 'package:market_express/utils/price_helper.dart';
 import 'package:market_express/widgets/comprix_app_bar.dart';
 import 'package:market_express/widgets/price_form_field.dart';
+import 'package:market_express/widgets/search_suggestions_panel.dart';
 import 'package:provider/provider.dart';
 
 enum SortOption { alphabetical, categoryAlphabetical }
@@ -407,7 +409,7 @@ class _ShoppingPageState extends State<ShoppingPage> {
   Widget build(BuildContext context) {
     final allItems = Provider.of<MarketItemController>(
       context,
-    ).items.where((item) => widget.purchase.itemIds.contains(item.id)).toList();
+    ).allItems.where((item) => widget.purchase.itemIds.contains(item.id)).toList();
 
     // Aplicar ordenação
     final sortedItems = _sortItems(allItems);
@@ -439,6 +441,11 @@ class _ShoppingPageState extends State<ShoppingPage> {
     final totalItems = allItems.length;
     final hiddenBoughtCount = sortedItems.length - visibleByBoughtItems.length;
     final progress = totalItems > 0 ? completedCount / totalItems : 0.0;
+    final searchSuggestions = buildItemNameSuggestions(
+      sortedItems,
+      _itemSearchQuery,
+      maxSuggestions: 5,
+    );
 
     return Scaffold(
       appBar: ComprixAppBar(
@@ -1003,6 +1010,18 @@ class _ShoppingPageState extends State<ShoppingPage> {
                       onChanged: (value) {
                         setState(() {
                           _itemSearchQuery = value;
+                        });
+                      },
+                    ),
+                    SearchSuggestionsPanel(
+                      suggestions: searchSuggestions,
+                      onSuggestionTap: (suggestion) {
+                        _itemSearchController.text = suggestion;
+                        _itemSearchController.selection = TextSelection.fromPosition(
+                          TextPosition(offset: suggestion.length),
+                        );
+                        setState(() {
+                          _itemSearchQuery = suggestion;
                         });
                       },
                     ),

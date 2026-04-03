@@ -10,6 +10,7 @@ class MarketItemController extends ChangeNotifier {
   String _searchQuery = '';
 
   List<MarketItem> get items => _searchQuery.isEmpty ? _items : _filteredItems;
+  List<MarketItem> get allItems => _items;
   String get searchQuery => _searchQuery;
 
   Future<void> loadItems() async {
