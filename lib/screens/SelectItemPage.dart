@@ -220,33 +220,57 @@ class _SelectItemPageState extends State<SelectItemPage> {
                     .toList();
 
                 if (filteredItems.isEmpty) {
-                  return Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          _search.isEmpty ? Icons.inventory_outlined : Icons.search_off_rounded,
-                          size: 80,
-                          color: AppColors.textLight,
+                  return LayoutBuilder(
+                    builder: (context, constraints) {
+                      return SingleChildScrollView(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 16,
                         ),
-                        const SizedBox(height: 16),
-                        Text(
-                          _search.isEmpty ? 'Nenhum item disponível' : 'Nenhum item encontrado',
-                          style: const TextStyle(
-                            fontSize: 18,
-                            color: AppColors.textSecondary,
-                            fontWeight: FontWeight.w600,
+                        child: ConstrainedBox(
+                          constraints: BoxConstraints(
+                            minHeight: constraints.maxHeight,
+                          ),
+                          child: Center(
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  _search.isEmpty
+                                      ? Icons.inventory_outlined
+                                      : Icons.search_off_rounded,
+                                  size: 80,
+                                  color: AppColors.textLight,
+                                ),
+                                const SizedBox(height: 16),
+                                Text(
+                                  _search.isEmpty
+                                      ? 'Nenhum item disponível'
+                                      : 'Nenhum item encontrado',
+                                  style: const TextStyle(
+                                    fontSize: 18,
+                                    color: AppColors.textSecondary,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  _search.isEmpty
+                                      ? 'Todos os itens já estão na compra'
+                                      : 'Tente outro termo de busca',
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    color: AppColors.textLight,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ],
+                            ),
                           ),
                         ),
-                        const SizedBox(height: 8),
-                        Text(
-                          _search.isEmpty
-                              ? 'Todos os itens já estão na compra'
-                              : 'Tente outro termo de busca',
-                          style: const TextStyle(fontSize: 14, color: AppColors.textLight),
-                        ),
-                      ],
-                    ),
+                      );
+                    },
                   );
                 }
 

@@ -12,6 +12,7 @@ import 'package:market_express/screens/SelectItemPage.dart';
 import 'package:market_express/utils/app_colors.dart';
 import 'package:market_express/utils/item_search_helper.dart';
 import 'package:market_express/utils/price_helper.dart';
+import 'package:market_express/utils/variable_price_categories.dart';
 import 'package:market_express/widgets/comprix_app_bar.dart';
 import 'package:market_express/widgets/price_form_field.dart';
 import 'package:market_express/widgets/search_suggestions_panel.dart';
@@ -286,10 +287,8 @@ class _ShoppingPageState extends State<ShoppingPage> {
     });
 
     try {
-      final action = await _askCompleteAction(item);
-      if (action == null) return;
-
-      if (action == _CompleteItemAction.updatePrice) {
+      final isVariablePriceItem = isVariablePriceCategory(item.category);
+      if (isVariablePriceItem) {
         final newPriceCentavos = await _askNewPriceCentavos(item);
         if (newPriceCentavos == null) return;
 
@@ -300,6 +299,22 @@ class _ShoppingPageState extends State<ShoppingPage> {
           context,
           listen: false,
         ).loadItems();
+      } else {
+        final action = await _askCompleteAction(item);
+        if (action == null) return;
+
+        if (action == _CompleteItemAction.updatePrice) {
+          final newPriceCentavos = await _askNewPriceCentavos(item);
+          if (newPriceCentavos == null) return;
+
+          final newPrice = PriceHelper.centavosToDouble(newPriceCentavos);
+          await DBHelper.updateItemPrice(item.id!, newPrice);
+          await DBHelper.insertItemPriceHistory(item.id!, newPrice);
+          await Provider.of<MarketItemController>(
+            context,
+            listen: false,
+          ).loadItems();
+        }
       }
 
       final updatedIsAdded = Map<int, bool>.from(_isAdded)..[item.id!] = true;

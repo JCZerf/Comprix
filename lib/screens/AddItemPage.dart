@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:market_express/services/LoadCategories.dart';
 import 'package:market_express/utils/app_colors.dart';
 import 'package:market_express/utils/item_search_helper.dart';
+import 'package:market_express/utils/variable_price_categories.dart';
 import 'package:market_express/widgets/comprix_app_bar.dart';
 import 'package:market_express/widgets/price_form_field.dart';
 import 'package:market_express/widgets/search_suggestions_panel.dart';
@@ -70,6 +71,7 @@ class _AddItemPageState extends State<AddItemPage> with SingleTickerProviderStat
 
   @override
   Widget build(BuildContext context) {
+    final isVariablePrice = isVariablePriceCategory(category);
     final existingItems = Provider.of<MarketItemController>(context).allItems;
     final duplicateFeedback = getItemNameDuplicateFeedback(
       existingItems,
@@ -256,13 +258,32 @@ class _AddItemPageState extends State<AddItemPage> with SingleTickerProviderStat
                                   Expanded(
                                     child: _buildFormField(
                                       child: PriceFormField(
-                                        labelText: 'Preço *',
-                                        hintText: '0,00',
-                                        onSaved: (centavos) => priceCentavos = centavos,
+                                        key: ValueKey(
+                                          'add-price-${category ?? 'none'}-$isVariablePrice',
+                                        ),
+                                        labelText: isVariablePrice
+                                            ? 'Preço (na compra)'
+                                            : 'Preço *',
+                                        hintText: isVariablePrice
+                                            ? 'Definido ao marcar comprado'
+                                            : '0,00',
+                                        initialCentavos: !isVariablePrice &&
+                                                priceCentavos > 0
+                                            ? priceCentavos
+                                            : null,
+                                        enabled: !isVariablePrice,
+                                        onChanged: (centavos) =>
+                                            priceCentavos = centavos,
+                                        onSaved: (centavos) => priceCentavos =
+                                            isVariablePrice ? 0 : centavos,
                                         validator: (value) => null,
                                         decoration: InputDecoration(
-                                          labelText: 'Preço *',
-                                          hintText: '0,00',
+                                          labelText: isVariablePrice
+                                              ? 'Preço (na compra)'
+                                              : 'Preço *',
+                                          hintText: isVariablePrice
+                                              ? 'Definido ao marcar comprado'
+                                              : '0,00',
                                           prefixIcon: const Icon(
                                             Icons.attach_money_rounded,
                                             color: AppColors.success,
@@ -283,7 +304,9 @@ class _AddItemPageState extends State<AddItemPage> with SingleTickerProviderStat
                                             ),
                                           ),
                                           filled: true,
-                                          fillColor: Colors.white,
+                                          fillColor: isVariablePrice
+                                              ? Colors.grey[100]
+                                              : Colors.white,
                                         ),
                                       ),
                                     ),
@@ -328,6 +351,39 @@ class _AddItemPageState extends State<AddItemPage> with SingleTickerProviderStat
                                   ),
                                 ],
                               ),
+                              if (isVariablePrice)
+                                Padding(
+                                  padding: const EdgeInsets.only(bottom: 20),
+                                  child: Container(
+                                    width: double.infinity,
+                                    padding: const EdgeInsets.all(10),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.backgroundBlue,
+                                      borderRadius: BorderRadius.circular(10),
+                                      border: Border.all(color: AppColors.divider),
+                                    ),
+                                    child: const Row(
+                                      children: [
+                                        Icon(
+                                          Icons.scale_rounded,
+                                          size: 16,
+                                          color: AppColors.textSecondary,
+                                        ),
+                                        SizedBox(width: 8),
+                                        Expanded(
+                                          child: Text(
+                                            'Preço variável: será definido ao marcar como comprado.',
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              color: AppColors.textSecondary,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
 
                               // Descrição
                               _buildFormField(
@@ -427,7 +483,14 @@ class _AddItemPageState extends State<AddItemPage> with SingleTickerProviderStat
                                                   DropdownMenuItem(value: cat, child: Text(cat)),
                                             )
                                             .toList(),
-                                        onChanged: (value) => setState(() => category = value),
+                                        onChanged: (value) {
+                                          setState(() {
+                                            category = value;
+                                            if (isVariablePriceCategory(value)) {
+                                              priceCentavos = 0;
+                                            }
+                                          });
+                                        },
                                         validator: (value) => null,
                                       ),
                               ),
@@ -524,6 +587,10 @@ class _AddItemPageState extends State<AddItemPage> with SingleTickerProviderStat
                                       );
 
                                       if (confirmDuplicate != true) return;
+                                    }
+
+                                    if (isVariablePriceCategory(category)) {
+                                      priceCentavos = 0;
                                     }
 
                                     setState(() => _isLoading = true);

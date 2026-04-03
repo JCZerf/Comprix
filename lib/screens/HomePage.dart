@@ -30,8 +30,40 @@ class HomePage extends StatefulWidget {
   State<HomePage> createState() => _HomePageState();
 }
 
+enum HomeSortOption {
+  alphabetical,
+  categoryAlphabetical,
+  priceDescending,
+  quantityDescending,
+}
+
 class _HomePageState extends State<HomePage> {
   final TextEditingController _searchController = TextEditingController();
+  HomeSortOption _currentSort = HomeSortOption.alphabetical;
+
+  int _compareByName(MarketItem a, MarketItem b) {
+    return _normalize(a.name).compareTo(_normalize(b.name));
+  }
+
+  int _compareByCategory(MarketItem a, MarketItem b) {
+    final categoryA = _normalize((a.category ?? '').trim());
+    final categoryB = _normalize((b.category ?? '').trim());
+    final categoryCompare = categoryA.compareTo(categoryB);
+    if (categoryCompare != 0) return categoryCompare;
+    return _compareByName(a, b);
+  }
+
+  int _compareByPriceDescending(MarketItem a, MarketItem b) {
+    final priceCompare = (b.priceCentavos ?? 0).compareTo(a.priceCentavos ?? 0);
+    if (priceCompare != 0) return priceCompare;
+    return _compareByName(a, b);
+  }
+
+  int _compareByQuantityDescending(MarketItem a, MarketItem b) {
+    final quantityCompare = b.quantity.compareTo(a.quantity);
+    if (quantityCompare != 0) return quantityCompare;
+    return _compareByName(a, b);
+  }
 
   @override
   void initState() {
@@ -60,6 +92,127 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       appBar: ComprixAppBar(
         title: ComprixAppBar.titleText('Comprix', fontSize: 22),
+        actions: [
+          PopupMenuButton<HomeSortOption>(
+            icon: const Icon(Icons.filter_list, color: Colors.white),
+            tooltip: 'Ordenar',
+            onSelected: (HomeSortOption option) {
+              setState(() {
+                _currentSort = option;
+              });
+            },
+            itemBuilder: (context) => [
+              PopupMenuItem(
+                value: HomeSortOption.alphabetical,
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.sort_by_alpha,
+                      color: _currentSort == HomeSortOption.alphabetical
+                          ? AppColors.primaryBlue
+                          : AppColors.textSecondary,
+                    ),
+                    const SizedBox(width: 12),
+                    Text(
+                      'Ordem alfabética',
+                      style: TextStyle(
+                        fontWeight:
+                            _currentSort == HomeSortOption.alphabetical
+                            ? FontWeight.bold
+                            : FontWeight.normal,
+                        color: _currentSort == HomeSortOption.alphabetical
+                            ? AppColors.primaryBlue
+                            : AppColors.textPrimary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              PopupMenuItem(
+                value: HomeSortOption.categoryAlphabetical,
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.category_outlined,
+                      color:
+                          _currentSort == HomeSortOption.categoryAlphabetical
+                          ? AppColors.primaryBlue
+                          : AppColors.textSecondary,
+                    ),
+                    const SizedBox(width: 12),
+                    Text(
+                      'Por categoria',
+                      style: TextStyle(
+                        fontWeight: _currentSort ==
+                                HomeSortOption.categoryAlphabetical
+                            ? FontWeight.bold
+                            : FontWeight.normal,
+                        color: _currentSort ==
+                                HomeSortOption.categoryAlphabetical
+                            ? AppColors.primaryBlue
+                            : AppColors.textPrimary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              PopupMenuItem(
+                value: HomeSortOption.priceDescending,
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.attach_money_rounded,
+                      color: _currentSort == HomeSortOption.priceDescending
+                          ? AppColors.primaryBlue
+                          : AppColors.textSecondary,
+                    ),
+                    const SizedBox(width: 12),
+                    Text(
+                      'Preço (maior primeiro)',
+                      style: TextStyle(
+                        fontWeight:
+                            _currentSort == HomeSortOption.priceDescending
+                            ? FontWeight.bold
+                            : FontWeight.normal,
+                        color: _currentSort == HomeSortOption.priceDescending
+                            ? AppColors.primaryBlue
+                            : AppColors.textPrimary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              PopupMenuItem(
+                value: HomeSortOption.quantityDescending,
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.numbers_rounded,
+                      color:
+                          _currentSort == HomeSortOption.quantityDescending
+                          ? AppColors.primaryBlue
+                          : AppColors.textSecondary,
+                    ),
+                    const SizedBox(width: 12),
+                    Text(
+                      'Quantidade (maior primeiro)',
+                      style: TextStyle(
+                        fontWeight:
+                            _currentSort == HomeSortOption.quantityDescending
+                            ? FontWeight.bold
+                            : FontWeight.normal,
+                        color:
+                            _currentSort == HomeSortOption.quantityDescending
+                            ? AppColors.primaryBlue
+                            : AppColors.textPrimary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
       backgroundColor: AppColors.background,
       body: Stack(
@@ -73,7 +226,7 @@ class _HomePageState extends State<HomePage> {
                   color: Colors.white,
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
+                      color: Colors.black.withValues(alpha: 0.05),
                       blurRadius: 10,
                       offset: const Offset(0, 2),
                     ),
@@ -202,10 +355,20 @@ class _HomePageState extends State<HomePage> {
                       final visibleItems = List<MarketItem>.from(
                         controller.items,
                       );
-                      visibleItems.sort(
-                        (a, b) =>
-                            _normalize(a.name).compareTo(_normalize(b.name)),
-                      );
+                      switch (_currentSort) {
+                        case HomeSortOption.alphabetical:
+                          visibleItems.sort(_compareByName);
+                          break;
+                        case HomeSortOption.categoryAlphabetical:
+                          visibleItems.sort(_compareByCategory);
+                          break;
+                        case HomeSortOption.priceDescending:
+                          visibleItems.sort(_compareByPriceDescending);
+                          break;
+                        case HomeSortOption.quantityDescending:
+                          visibleItems.sort(_compareByQuantityDescending);
+                          break;
+                      }
 
                       return Padding(
                         padding: const EdgeInsets.symmetric(
@@ -693,7 +856,7 @@ class _HomePageState extends State<HomePage> {
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: AppColors.primaryBlue.withOpacity(0.4),
+              color: AppColors.primaryBlue.withValues(alpha: 0.4),
               blurRadius: 20,
               offset: const Offset(0, 8),
             ),
