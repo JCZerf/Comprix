@@ -41,13 +41,13 @@ class _SelectItemPageState extends State<SelectItemPage> {
         .toList();
 
     availableItems.sort((a, b) {
-      final nameComparison = _normalizeForSort(a.name).compareTo(
-        _normalizeForSort(b.name),
-      );
+      final nameComparison = _normalizeForSort(
+        a.name,
+      ).compareTo(_normalizeForSort(b.name));
       if (nameComparison != 0) return nameComparison;
-      return _normalizeForSort(a.category ?? '').compareTo(
-        _normalizeForSort(b.category ?? ''),
-      );
+      return _normalizeForSort(
+        a.category ?? '',
+      ).compareTo(_normalizeForSort(b.category ?? ''));
     });
 
     return availableItems;
@@ -56,7 +56,10 @@ class _SelectItemPageState extends State<SelectItemPage> {
   void _submitSelection() {
     if (_selectedItemIds.isEmpty) return;
 
-    final controller = Provider.of<MarketItemController>(context, listen: false);
+    final controller = Provider.of<MarketItemController>(
+      context,
+      listen: false,
+    );
     final allAvailableItems = _getSortedAvailableItems(controller.items);
     final selectedItems = allAvailableItems.where((item) {
       final itemId = item.id;
@@ -109,7 +112,11 @@ class _SelectItemPageState extends State<SelectItemPage> {
             decoration: const BoxDecoration(
               gradient: AppColors.primaryGradient,
               boxShadow: [
-                BoxShadow(color: Color(0x2042A5F5), blurRadius: 12, offset: Offset(0, 4)),
+                BoxShadow(
+                  color: Color(0x2042A5F5),
+                  blurRadius: 12,
+                  offset: Offset(0, 4),
+                ),
               ],
             ),
             child: Column(
@@ -121,7 +128,11 @@ class _SelectItemPageState extends State<SelectItemPage> {
                     color: Colors.white.withOpacity(0.2),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: const Icon(Icons.playlist_add_rounded, size: 32, color: Colors.white),
+                  child: const Icon(
+                    Icons.playlist_add_rounded,
+                    size: 32,
+                    color: Colors.white,
+                  ),
                 ),
                 const SizedBox(height: 12),
                 const Text(
@@ -136,7 +147,10 @@ class _SelectItemPageState extends State<SelectItemPage> {
                 const SizedBox(height: 4),
                 Text(
                   'Selecione um ou mais itens da sua lista',
-                  style: TextStyle(fontSize: 14, color: Colors.white.withOpacity(0.9)),
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.white.withOpacity(0.9),
+                  ),
                 ),
               ],
             ),
@@ -152,7 +166,10 @@ class _SelectItemPageState extends State<SelectItemPage> {
                   controller: _searchController,
                   decoration: InputDecoration(
                     hintText: 'Pesquisar item...',
-                    prefixIcon: const Icon(Icons.search_rounded, color: AppColors.primaryBlue),
+                    prefixIcon: const Icon(
+                      Icons.search_rounded,
+                      color: AppColors.primaryBlue,
+                    ),
                     suffixIcon: _search.isNotEmpty
                         ? IconButton(
                             icon: const Icon(Icons.clear_rounded),
@@ -167,7 +184,10 @@ class _SelectItemPageState extends State<SelectItemPage> {
                         : null,
                     filled: true,
                     fillColor: AppColors.background,
-                    contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+                    contentPadding: const EdgeInsets.symmetric(
+                      vertical: 16,
+                      horizontal: 16,
+                    ),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(14),
                       borderSide: BorderSide.none,
@@ -178,7 +198,10 @@ class _SelectItemPageState extends State<SelectItemPage> {
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(14),
-                      borderSide: const BorderSide(color: AppColors.primaryBlue, width: 2),
+                      borderSide: const BorderSide(
+                        color: AppColors.primaryBlue,
+                        width: 2,
+                      ),
                     ),
                   ),
                   onChanged: (value) {
@@ -221,18 +244,31 @@ class _SelectItemPageState extends State<SelectItemPage> {
                 final allAvailableItems = _getSortedAvailableItems(
                   controller.allItems,
                 );
-                final filteredItems = allAvailableItems
-                    .where((item) {
+                final filteredItems = allAvailableItems.where((item) {
+                  final normalizedName = _normalizeForSort(item.name);
+                  final normalizedCategory = _normalizeForSort(
+                    item.category ?? '',
+                  );
+                  return normalizedName.contains(_search) ||
+                      normalizedCategory.contains(_search);
+                }).toList();
+
+                if (filteredItems.isEmpty) {
+                  // Verifica se existem itens que correspondem à busca mas já estão na compra
+                  bool hasItemInPurchase = false;
+                  if (_search.isNotEmpty) {
+                    hasItemInPurchase = controller.allItems.any((item) {
+                      if (!widget.excludeItemIds.contains(item.id))
+                        return false;
                       final normalizedName = _normalizeForSort(item.name);
                       final normalizedCategory = _normalizeForSort(
                         item.category ?? '',
                       );
                       return normalizedName.contains(_search) ||
                           normalizedCategory.contains(_search);
-                    })
-                    .toList();
+                    });
+                  }
 
-                if (filteredItems.isEmpty) {
                   return LayoutBuilder(
                     builder: (context, constraints) {
                       return SingleChildScrollView(
@@ -251,18 +287,26 @@ class _SelectItemPageState extends State<SelectItemPage> {
                                 Icon(
                                   _search.isEmpty
                                       ? Icons.inventory_outlined
+                                      : hasItemInPurchase
+                                      ? Icons.check_circle_outline_rounded
                                       : Icons.search_off_rounded,
                                   size: 80,
-                                  color: AppColors.textLight,
+                                  color: hasItemInPurchase
+                                      ? AppColors.primaryBlue
+                                      : AppColors.textLight,
                                 ),
                                 const SizedBox(height: 16),
                                 Text(
                                   _search.isEmpty
                                       ? 'Nenhum item disponível'
+                                      : hasItemInPurchase
+                                      ? 'Item já está na lista'
                                       : 'Nenhum item encontrado',
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontSize: 18,
-                                    color: AppColors.textSecondary,
+                                    color: hasItemInPurchase
+                                        ? AppColors.primaryBlue
+                                        : AppColors.textSecondary,
                                     fontWeight: FontWeight.w600,
                                   ),
                                   textAlign: TextAlign.center,
@@ -271,6 +315,8 @@ class _SelectItemPageState extends State<SelectItemPage> {
                                 Text(
                                   _search.isEmpty
                                       ? 'Todos os itens já estão na compra'
+                                      : hasItemInPurchase
+                                      ? 'O item procurado já foi adicionado a esta compra'
                                       : 'Tente outro termo de busca',
                                   style: const TextStyle(
                                     fontSize: 14,
@@ -385,7 +431,9 @@ class _SelectItemPageState extends State<SelectItemPage> {
                                   decoration: BoxDecoration(
                                     color: Colors.white,
                                     borderRadius: BorderRadius.circular(8),
-                                    border: Border.all(color: AppColors.divider),
+                                    border: Border.all(
+                                      color: AppColors.divider,
+                                    ),
                                     boxShadow: [
                                       BoxShadow(
                                         color: AppColors.textSecondary
@@ -424,7 +472,9 @@ class _SelectItemPageState extends State<SelectItemPage> {
                                   decoration: BoxDecoration(
                                     color: Colors.white,
                                     borderRadius: BorderRadius.circular(8),
-                                    border: Border.all(color: AppColors.divider),
+                                    border: Border.all(
+                                      color: AppColors.divider,
+                                    ),
                                     boxShadow: [
                                       BoxShadow(
                                         color: Colors.black.withValues(
