@@ -2,7 +2,7 @@
 
 Aplicativo Flutter para gestão de itens, execução de compras e análise de variação de preços.
 
-Versão atual do app: `2.2.0`.
+Versão atual do app: `2.2.1`.
 
 ## Escopo do produto
 
@@ -36,13 +36,17 @@ O aplicativo está organizado em três áreas principais:
 - Inclusão de item na compra por dois caminhos:
   - Selecionar item existente (multi-seleção)
   - Criar novo item
+- **Recálculo automático do valor total** ao adicionar ou remover itens (v2.2.1).
+- **Diálogo inteligente** ao criar novo item perguntando se já está no carrinho físico (v2.2.1).
+- **Feedback visual melhorado** ao buscar itens já adicionados à compra (v2.2.1).
 - Tela de shopping com marcação de itens comprados.
 - Controle de exibição de itens comprados (mostrar/ocultar).
 - Ordenação na tela de shopping:
   - Alfabética
   - Por categoria
 - Busca com sugestões dentro da compra.
-- Opção de atualizar preço ao concluir item.
+- Opção de atualizar preço ao marcar item no carrinho.
+- Interface otimizada: "Item no carrinho" ao invés de "Concluir item" (v2.2.1).
 
 ### Categorias com preço variável
 
@@ -216,10 +220,27 @@ flutter build appbundle --release
 Versão do aplicativo em `pubspec.yaml`:
 
 ```yaml
-version: 2.2.0+3
+version: 2.2.1+4
 ```
 
-Marca d’água de versão na interface em `lib/utils/watermark_widget.dart`.
+Marca d'água de versão na interface em `lib/utils/watermark_widget.dart`.
+
+### Changelog
+
+#### v2.2.1 (Abril 2026)
+
+**Melhorias no fluxo de compras:**
+
+- ✅ **Valor total dinâmico**: O valor total da compra agora é recalculado automaticamente sempre que itens são adicionados ou removidos, garantindo precisão.
+- ✅ **Feedback ao buscar itens existentes**: Ao buscar um item que já está na compra, exibe mensagem clara "Item já está na lista" ao invés de "Nenhum item encontrado".
+- ✅ **Marcação rápida de itens**: Ao criar um novo item na compra, pergunta automaticamente se o item já está no carrinho físico, permitindo marcá-lo como comprado imediatamente.
+- ✅ **Interface mais clara**: Diálogo de marcação renomeado de "Concluir item" para "Item no carrinho", refletindo melhor a ação do usuário no mercado.
+
+**Correções técnicas:**
+
+- Método `_calculateTotalFromItemIds` para recálculo dinâmico de totais.
+- Lógica de verificação de itens já incluídos em `SelectItemPage`.
+- Atualização de textos e mensagens de UX no fluxo de compras.
 
 ## Notas de manutenção
 
