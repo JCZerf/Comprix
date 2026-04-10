@@ -143,7 +143,7 @@ class _ShoppingPageState extends State<ShoppingPage> {
                 children: [
                   const Expanded(
                     child: Text(
-                      'Concluir item',
+                      'Item no carrinho',
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.w700,
@@ -160,7 +160,7 @@ class _ShoppingPageState extends State<ShoppingPage> {
               ),
               const SizedBox(height: 6),
               Text(
-                'Como deseja concluir "${item.name}"?',
+                'Deseja atualizar o preço de "${item.name}"?',
                 style: const TextStyle(
                   fontSize: 14,
                   color: AppColors.textSecondary,
@@ -193,7 +193,7 @@ class _ShoppingPageState extends State<ShoppingPage> {
                     _CompleteItemAction.markWithoutPrice,
                   ),
                   icon: const Icon(Icons.check_circle_outline_rounded),
-                  label: const Text('Não, só concluir'),
+                  label: const Text('Não, só marcar'),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: AppColors.textPrimary,
                     side: const BorderSide(color: AppColors.divider),
@@ -775,6 +775,116 @@ class _ShoppingPageState extends State<ShoppingPage> {
                   final allItems = await itemController.getItems();
                   final addedItem = allItems.last;
 
+                  // Pergunta se quer marcar como comprado
+                  final markAsBought = await showDialog<bool>(
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      title: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: AppColors.primaryBlue.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: const Icon(
+                              Icons.shopping_cart_checkout_rounded,
+                              color: AppColors.primaryBlue,
+                              size: 24,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          const Expanded(
+                            child: Text(
+                              'Item adicionado!',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      content: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'O item "${addedItem.name}" foi adicionado à sua lista.',
+                            style: const TextStyle(
+                              fontSize: 15,
+                              color: AppColors.textSecondary,
+                              height: 1.4,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: AppColors.backgroundBlue,
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: AppColors.divider),
+                            ),
+                            child: Row(
+                              children: [
+                                const Icon(
+                                  Icons.help_outline_rounded,
+                                  size: 20,
+                                  color: AppColors.primaryBlue,
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    'Já pegou este item no mercado?',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color: Colors.grey[700],
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(context, false),
+                          child: const Text(
+                            'Não',
+                            style: TextStyle(
+                              color: AppColors.textSecondary,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                        ElevatedButton.icon(
+                          onPressed: () => Navigator.pop(context, true),
+                          icon: const Icon(
+                            Icons.check_circle_rounded,
+                            size: 20,
+                          ),
+                          label: const Text('Sim, marcar como comprado'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primaryBlue,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 10,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+
                   final purchaseController = Provider.of<PurchaseController>(
                     context,
                     listen: false,
@@ -782,7 +892,7 @@ class _ShoppingPageState extends State<ShoppingPage> {
                   final updatedItemIds = List<int>.from(widget.purchase.itemIds)
                     ..add(addedItem.id!);
                   final updatedIsAdded = Map<int, bool>.from(_isAdded)
-                    ..[addedItem.id!] = false;
+                    ..[addedItem.id!] = markAsBought ?? false;
 
                   final totalValue = await _calculateTotalFromItemIds(
                     updatedItemIds,
@@ -802,6 +912,12 @@ class _ShoppingPageState extends State<ShoppingPage> {
                     _isAdded = updatedIsAdded;
                     widget.purchase.itemIds.add(addedItem.id!);
                   });
+
+                  if (markAsBought == true) {
+                    _showInfoMessage(
+                      'Item "${addedItem.name}" adicionado e marcado como comprado',
+                    );
+                  }
                 }
               } else if (option == 'existente') {
                 // Navega para a tela de seleção de itens
